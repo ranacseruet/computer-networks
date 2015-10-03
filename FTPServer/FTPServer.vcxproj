@@ -10,6 +10,13 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Server.h" />
+    <ClInclude Include="Thread.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Server.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EE338993-535B-4ECB-9DF5-057D43812C1D}</ProjectGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -69,12 +76,6 @@
       <AdditionalDependencies />
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="X:\Study\Computer Networks\Assignments\Client-Server\Server.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="X:\Study\Computer Networks\Assignments\Client-Server\Server.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
