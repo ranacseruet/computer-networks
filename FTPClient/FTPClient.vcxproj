@@ -10,6 +10,12 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Client.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Client.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{48011505-4458-40DD-93E2-8918AC621D00}</ProjectGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -68,8 +74,6 @@
       <AdditionalDependencies />
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
