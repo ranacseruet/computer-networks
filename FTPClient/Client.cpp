@@ -43,6 +43,26 @@ void TcpClient::run()
 			getOperation();
 		}
 	}
+	else if (strcmp(transferType.c_str(), "put") == 0) 
+	{
+		cin.ignore();
+		if (connectionStatus)
+		{
+			/* Initiate file retrieval */
+			sendMsg.type = REQ_PUT;
+			putOperation();
+		}
+	} 
+	else if (strcmp(transferType.c_str(), "delete") == 0)
+	{
+		cin.ignore();
+		if (connectionStatus)
+		{
+			/* Initiate file retrieval */
+			sendMsg.type = REQ_DELETE;
+			deleteOperation();
+		}
+	}
 	else
 	{
 		cerr<<"Wrong request type";
@@ -159,6 +179,30 @@ void TcpClient::getOperation()
     cout << "File received "<< endl << endl;
 	myFile.close();
 	closesocket(clientSock);
+}
+
+/**
+* Function - putOperation
+* Usage: Establish connection and semd file to server
+*
+* @arg: void
+*/
+void TcpClient::putOperation()
+{
+	//need to implement
+
+}
+
+
+/**
+* Function - deleteOperation
+* Usage: Establish connection and delete a file in the server
+*
+* @arg: void
+*/
+void TcpClient::deleteOperation()
+{
+	//need to implement
 }
 
 /**
