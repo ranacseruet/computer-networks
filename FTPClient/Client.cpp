@@ -171,7 +171,9 @@ void TcpClient::showMenu()
 {
 	int optionVal;
 	cout << "1 : GET " << endl;
-	cout << "2 : EXIT " << endl;
+	cout << "2 : PUT " << endl;
+	cout << "3 : DELETE " << endl;
+	cout << "4 : EXIT " << endl;
 	cout << "Please select the operation that you want to perform : ";
 	/* Check if invalid value is provided and reset if cin error flag is set */
 	if(!(cin >> optionVal))
@@ -188,7 +190,19 @@ void TcpClient::showMenu()
 			run();
 			break;
 
+
 		case 2:
+			transferType = "put";
+			run();
+			break;
+
+
+		case 3:
+			transferType = "delete";
+			run();
+			break;
+
+		case 4:
 			cout << "Terminating... " << endl; 
 			exit(1);
 			break;
