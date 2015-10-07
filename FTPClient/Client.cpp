@@ -127,8 +127,29 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 *
 * @arg: int
 */
-int makeReliable()
+int TcpClient::makeReliable()
 {
+	//create connection
+	//createConnection();
+
+	int random = rand() % 100;
+	char source = char(random);
+	//memcpy(sendMsg.buffer, source, sizeof(source));
+	/* Include the length of the buffer */
+	sendMsg.length = sizeof(sendMsg.buffer);
+	cout << endl << endl << "Sent Request to " << sendMsg.buffer[0] << ", Waiting... " << endl;
+	/* Send the packed message */
+
+	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	/* Send the packed message */
+	numBytesSent = msgSend(clientSock, &sendMsg);
+	if (numBytesSent == SOCKET_ERROR)
+	{
+		cout << "Send failed.. Check the Message length.. " << endl;
+		return 0;
+	}
+
+
 	return 0;
 
 }
@@ -140,7 +161,31 @@ int makeReliable()
 * @arg: int
 */
 void TcpClient::createConnection()
-{}
+{
+	/* Socket creation */
+	if ((clientSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) //create the socket
+	{
+		cerr << "Socket Creation Error";
+		return;
+	}
+	/* Establish connection with Server */
+	ServPort = REQUEST_PORT;
+	memset(&ServAddr, 0, sizeof(ServAddr));     /* Zero out structure */
+	ServAddr.sin_family = AF_INET;             /* Internet address family */
+	ServAddr.sin_addr.s_addr = ResolveName(serverIpAdd);   /* Server IP address */
+	ServAddr.sin_port = htons(ServPort); /* Server port */
+	if (connect(clientSock, (struct sockaddr *) &ServAddr, sizeof(ServAddr)) < 0)
+	{
+		cerr << "Socket Connection Error " << endl;
+		return;
+	}
+	/* Get the hostname */
+	if (gethostname(reqMessage.hostname, HOSTNAME_LENGTH) != 0)
+	{
+		cerr << "can not get the host name " << endl;
+		return;
+	}
+}
 
 /**
 * Function - listOperation
@@ -150,7 +195,7 @@ void TcpClient::createConnection()
 */
 void TcpClient::listOperation()
 {
-	//need to implement
+	int i = makeReliable();
 
 }
 
@@ -162,29 +207,7 @@ void TcpClient::listOperation()
  */
 void TcpClient::getOperation()
 { 
-	/* Socket creation */
-	if ((clientSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) //create the socket
-	{
-		cerr<<"Socket Creation Error";
-		return;
-	}
-	/* Establish connection with Server */
-	ServPort=REQUEST_PORT;
-	memset(&ServAddr, 0, sizeof(ServAddr));     /* Zero out structure */
-	ServAddr.sin_family      = AF_INET;             /* Internet address family */
-	ServAddr.sin_addr.s_addr = ResolveName(serverIpAdd);   /* Server IP address */
-	ServAddr.sin_port        = htons(ServPort); /* Server port */
-	if (connect(clientSock, (struct sockaddr *) &ServAddr, sizeof(ServAddr)) < 0)
-	{
-		cerr<<"Socket Connection Error " << endl;
-		return;
-	}
-	/* Get the hostname */
-	if(gethostname(reqMessage.hostname,HOSTNAME_LENGTH)!=0) 
-	{
-		cerr << "can not get the host name " <<endl;
-		return;
-	}
+	int i = makeReliable();
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
 	strcpy(reqMessage.filename,fileName.c_str());
