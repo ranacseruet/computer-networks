@@ -43,6 +43,16 @@ void TcpClient::run()
 			getOperation();
 		}
 	}
+	else if (strcmp(transferType.c_str(), "list") == 0)
+	{
+		cin.ignore();
+		if (connectionStatus)
+		{
+			/* Initiate file retrieval */
+			sendMsg.type = REQ_LIST;
+			listOperation();
+		}
+	}
 	else if (strcmp(transferType.c_str(), "put") == 0) 
 	{
 		cin.ignore();
@@ -107,6 +117,19 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 	}
 	/*Return the length of data in bytes, which has been sent out successfully */
 	return (len-MSGHDRSIZE);
+
+}
+
+
+/**
+* Function - listOperation
+* Usage: Establish connection and semd file to server
+*
+* @arg: void
+*/
+void TcpClient::listOperation()
+{
+	//need to implement
 
 }
 
@@ -214,10 +237,11 @@ void TcpClient::deleteOperation()
 void TcpClient::showMenu()
 {
 	int optionVal;
-	cout << "1 : GET " << endl;
-	cout << "2 : PUT " << endl;
-	cout << "3 : DELETE " << endl;
-	cout << "4 : EXIT " << endl;
+	cout << "1 : List " << endl;
+	cout << "2 : GET " << endl;
+	cout << "3 : PUT " << endl;
+	cout << "4 : DELETE " << endl;
+	cout << "5 : EXIT " << endl;
 	cout << "Please select the operation that you want to perform : ";
 	/* Check if invalid value is provided and reset if cin error flag is set */
 	if(!(cin >> optionVal))
@@ -230,23 +254,30 @@ void TcpClient::showMenu()
 	switch (optionVal)
 	{
 		case 1:
+			transferType = "list";
+			run();
+			break;
+
+
+
+		case 2:
 			transferType = "get";
 			run();
 			break;
 
 
-		case 2:
+		case 3:
 			transferType = "put";
 			run();
 			break;
 
 
-		case 3:
+		case 4:
 			transferType = "delete";
 			run();
 			break;
 
-		case 4:
+		case 5:
 			cout << "Terminating... " << endl; 
 			exit(1);
 			break;

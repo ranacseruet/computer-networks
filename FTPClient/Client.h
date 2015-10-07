@@ -24,9 +24,11 @@ using namespace std;
 /* Types of Messages */
 typedef enum
 {
-	REQ_GET		= 1,
-	REQ_PUT		= 2,
-	REQ_DELETE	= 3,
+	REQ_LIST	= 1,
+	REQ_GET		= 2,
+	REQ_PUT		= 3,
+	REQ_DELETE	= 4,
+	HANDSHAKE	= 5,
 } Type;
 
 /* Structure of Request */
@@ -73,6 +75,7 @@ class TcpClient
 	public:
 		TcpClient(); 
 		void run();						/* Invokes the appropriate function based on selected option */
+		void listOperation();				/* List all the files from Server */
 		void getOperation();			/* Retrieves the file from Server */
 		void putOperation();			/* Sends the file to Server */
 		void deleteOperation();			/* Delete a file into Server */

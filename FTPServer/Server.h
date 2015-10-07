@@ -14,10 +14,14 @@
 #define MAXPENDING 10
 #define MSGHDRSIZE 8
 
-/* Type of Messages */
+/* Types of Messages */
 typedef enum
 {
-	REQ_GET = 1
+	REQ_LIST	= 1,
+	REQ_GET		= 2,
+	REQ_PUT		= 3,
+	REQ_DELETE	= 4,
+	HANDSHAKE	= 5,
 } Type;
 
 /* Request message structure */
