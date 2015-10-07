@@ -83,5 +83,7 @@ class TcpClient
 		void startClient();				/* Starts the client process */
 		int msgSend(int ,Msg * );		/* Sends the packed message to server */
 		unsigned long ResolveName(string name);	/* Resolve the specified host name */
+		int makeReliable();				/* Create reliable connection */
+		void createConnection();         /* Initialize everything for creating connection */
 		~TcpClient();		
 };

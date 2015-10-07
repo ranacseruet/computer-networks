@@ -122,6 +122,27 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 
 
 /**
+* Function - makeReliable
+* Usage: Create reliable connection with the server
+*
+* @arg: int
+*/
+int makeReliable()
+{
+	return 0;
+
+}
+
+/**
+* Function - createConnection
+* Usage: Create conection for sending & receiving data
+*
+* @arg: int
+*/
+void TcpClient::createConnection()
+{}
+
+/**
 * Function - listOperation
 * Usage: Establish connection and semd file to server
 *
