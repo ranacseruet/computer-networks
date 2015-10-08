@@ -13,10 +13,51 @@
 #include <fstream>
 #include <process.h>
 //#include <mutex>
+#include <direct.h>
 #include "Thread.h"
 #include "server.h"
 
 using namespace std;
+
+//HELPER FUNCTIONS----------------
+std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
+//--------------------
+
+char** getListOfFiles()
+{
+	char cCurrentPath[FILENAME_MAX], **filesList;
+	struct _stat stat_buf;
+	cout << "Current Directory: " << _getcwd(cCurrentPath, sizeof(cCurrentPath)) << "\n";
+
+	HANDLE hFind;
+	WIN32_FIND_DATA data;
+	std::wstring stemp = s2ws(strcat(cCurrentPath, "\\data\\*"));
+	LPCWSTR rootPath = stemp.c_str();
+	hFind = FindFirstFile(rootPath, &data);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		int i = 0;
+		do {
+			wprintf_s(data.cFileName);
+			cout << '\n';
+			//TODO copy file name in the fileList array
+		} while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+	else {
+		cout << "invalid handle value: " << hFind;
+	}
+	return filesList;
+}
 
 /**
 * Constructor - TcpServer
@@ -276,6 +317,12 @@ void TcpThread::run()
 		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be sent" << endl;
 		/* Transfer the requested file to Client */
 		sendFileData(requestPtr->filename);
+		getListOfFiles();
+	}
+	else if (receiveMsg.type == REQ_LIST)
+	{
+		cout << "User " << requestPtr->hostname << " requested for list of files to be sent" << endl;
+		getListOfFiles();
 	}
 
 }
@@ -291,6 +338,5 @@ int main(void)
 	TcpServer ts;
 	/* Start the server and start listening to requests */
 	ts.start();
-
 	return 0;
 }
