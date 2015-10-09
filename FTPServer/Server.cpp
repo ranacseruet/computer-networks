@@ -15,6 +15,7 @@
 //#include <mutex>
 #include <direct.h>
 #include <vector>
+#include <stdlib.h>
 
 #include "Thread.h"
 #include "server.h"
@@ -50,7 +51,7 @@ void getListOfFiles(char files[10000])
 		int i = 0;
 		do {
 			//wprintf_s(data.cFileName);
-			memcpy(fileName, (char*)data.cFileName, sizeof(data.cFileName));
+			wcstombs(fileName, data.cFileName, sizeof(data.cFileName));
 			if (strcmp(fileName, ".") != 0 && strcmp(fileName, "..") != 0)
 			{
 				memcpy((files + strlen(files)), fileName, strlen(fileName));
