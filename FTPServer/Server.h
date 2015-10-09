@@ -73,8 +73,9 @@ public:
 	virtual void run();						/* Starts the thread for every client request */
 	int msgRecv(int, Msg *);				/* Receive the incoming requests */
 	int msgSend(int, Msg *);				/* Send the response */
-	void sendFileData(char[]);				/* Sends the contents of the file (get)*/
+	void sendFileData(char[]);  			/* Sends the contents of the file (get)*/
 	unsigned long ResolveName(char name[]);	/* Resolves the host name */
+	void sendListOfFiles();
 };
 
 #endif

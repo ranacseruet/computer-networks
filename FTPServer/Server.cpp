@@ -13,10 +13,59 @@
 #include <fstream>
 #include <process.h>
 //#include <mutex>
+#include <direct.h>
+#include <vector>
+#include <stdlib.h>
+
 #include "Thread.h"
 #include "server.h"
 
 using namespace std;
+
+//HELPER FUNCTIONS----------------
+std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
+//--------------------
+
+void getListOfFiles(char files[10000])
+{
+	char cCurrentPath[FILENAME_MAX], fileName[1000];
+	struct _stat stat_buf;
+	cout << "Current Directory: " << _getcwd(cCurrentPath, sizeof(cCurrentPath)) << "\n";
+
+	HANDLE hFind;
+	WIN32_FIND_DATA data;
+	std::wstring stemp = s2ws(strcat(cCurrentPath, "\\*"));
+	LPCWSTR rootPath = stemp.c_str();
+	hFind = FindFirstFile(rootPath, &data);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		int i = 0;
+		do {
+			//wprintf_s(data.cFileName);
+			wcstombs(fileName, data.cFileName, sizeof(data.cFileName));
+			if (strcmp(fileName, ".") != 0 && strcmp(fileName, "..") != 0)
+			{
+				memcpy((files + strlen(files)), fileName, strlen(fileName));
+				strcat(files, "\n");
+				i++;
+			}
+		} while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+		cout << i << " files found\n";
+	}
+	else {
+		cout << "invalid handle value: " << hFind;
+	}
+}
 
 /**
 * Constructor - TcpServer
@@ -253,6 +302,31 @@ void TcpThread::sendFileData(char fName[20])
 	closesocket(serverSocket);
 }
 
+void TcpThread::sendListOfFiles()
+{
+	char files[10000] = {0};
+	Msg sendMsg;
+	Resp responseMsg;
+	int numBytesSent = 0;
+
+	getListOfFiles(files);
+	strcpy(responseMsg.response, files);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
+	/* Send the contents of file recursively */
+	if ((numBytesSent = send(serverSocket, sendMsg.buffer, sizeof(responseMsg), 0)) == SOCKET_ERROR)
+	{
+		cout << "Socket Error occured while sending data " << endl;
+		/* Close the connection and unlock the mutex if there is a Socket Error */
+	}
+	
+	/* Reset the buffer */
+	memset(sendMsg.buffer, '\0', sizeof(sendMsg.buffer));
+	
+	closesocket(serverSocket);
+	return;
+}
+
 /**
 * Function - run
 * Usage: Based on the requested operation, invokes the appropriate function
@@ -277,6 +351,11 @@ void TcpThread::run()
 		/* Transfer the requested file to Client */
 		sendFileData(requestPtr->filename);
 	}
+	else if (receiveMsg.type == REQ_LIST)
+	{
+		cout << "User " << requestPtr->hostname << " requested for list of files to be sent" << endl;
+		sendListOfFiles();
+	}
 
 }
 
@@ -288,9 +367,13 @@ void TcpThread::run()
 */
 int main(void)
 {
+	//Enable when log to file
+	/*ofstream out("data\\out.txt");
+	streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!*/
+
 	TcpServer ts;
 	/* Start the server and start listening to requests */
 	ts.start();
-
 	return 0;
 }
