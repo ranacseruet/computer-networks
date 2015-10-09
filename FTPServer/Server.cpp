@@ -37,21 +37,26 @@ std::wstring s2ws(const std::string& s)
 
 void getListOfFiles(char files[10000])
 {
-	char cCurrentPath[FILENAME_MAX];
+	char cCurrentPath[FILENAME_MAX], fileName[1000];
 	struct _stat stat_buf;
 	cout << "Current Directory: " << _getcwd(cCurrentPath, sizeof(cCurrentPath)) << "\n";
 
 	HANDLE hFind;
 	WIN32_FIND_DATA data;
-	std::wstring stemp = s2ws(strcat(cCurrentPath, "\\data\\*"));
+	std::wstring stemp = s2ws(strcat(cCurrentPath, "\\*"));
 	LPCWSTR rootPath = stemp.c_str();
 	hFind = FindFirstFile(rootPath, &data);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		int i = 0;
 		do {
 			//wprintf_s(data.cFileName);
-			strcat(files, (char*)data.cFileName);
-			strcat(files, "\n");
+			memcpy(fileName, (char*)data.cFileName, sizeof(data.cFileName));
+			if (strcmp(fileName, ".") != 0 && strcmp(fileName, "..") != 0)
+			{
+				memcpy((files + strlen(files)), fileName, strlen(fileName));
+				strcat(files, "\n");
+				i++;
+			}
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 		cout << i << " files found\n";
@@ -298,7 +303,7 @@ void TcpThread::sendFileData(char fName[20])
 
 void TcpThread::sendListOfFiles()
 {
-	char files[10000] = "";
+	char files[10000] = {0};
 	Msg sendMsg;
 	Resp responseMsg;
 	int numBytesSent = 0;
