@@ -14,6 +14,8 @@
 #include <process.h>
 //#include <mutex>
 #include <direct.h>
+#include <vector>
+
 #include "Thread.h"
 #include "server.h"
 
@@ -33,9 +35,9 @@ std::wstring s2ws(const std::string& s)
 }
 //--------------------
 
-char** getListOfFiles()
+void getListOfFiles(char files[10000])
 {
-	char cCurrentPath[FILENAME_MAX], **filesList;
+	char cCurrentPath[FILENAME_MAX];
 	struct _stat stat_buf;
 	cout << "Current Directory: " << _getcwd(cCurrentPath, sizeof(cCurrentPath)) << "\n";
 
@@ -47,16 +49,19 @@ char** getListOfFiles()
 	if (hFind != INVALID_HANDLE_VALUE) {
 		int i = 0;
 		do {
-			wprintf_s(data.cFileName);
-			cout << '\n';
+			//wprintf_s(data.cFileName);
+			//cout << '\n';
 			//TODO copy file name in the fileList array
+			strcat(files, (char*)data.cFileName);
+			strcat(files, "\n");
+			//memcpy(files[i++], (char*)data.cFileName, sizeof(data.cFileName));
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
+		cout << i << " files found\n";
 	}
 	else {
 		cout << "invalid handle value: " << hFind;
 	}
-	return filesList;
 }
 
 /**
@@ -294,6 +299,31 @@ void TcpThread::sendFileData(char fName[20])
 	closesocket(serverSocket);
 }
 
+void TcpThread::sendListOfFiles()
+{
+	char files[10000] = "";
+	Msg sendMsg;
+	Resp responseMsg;
+	int numBytesSent = 0;
+
+	getListOfFiles(files);
+	strcpy(responseMsg.response, files);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
+	/* Send the contents of file recursively */
+	if ((numBytesSent = send(serverSocket, sendMsg.buffer, sizeof(responseMsg), 0)) == SOCKET_ERROR)
+	{
+		cout << "Socket Error occured while sending data " << endl;
+		/* Close the connection and unlock the mutex if there is a Socket Error */
+	}
+	
+	/* Reset the buffer */
+	memset(sendMsg.buffer, '\0', sizeof(sendMsg.buffer));
+	
+	closesocket(serverSocket);
+	return;
+}
+
 /**
 * Function - run
 * Usage: Based on the requested operation, invokes the appropriate function
@@ -317,12 +347,11 @@ void TcpThread::run()
 		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be sent" << endl;
 		/* Transfer the requested file to Client */
 		sendFileData(requestPtr->filename);
-		getListOfFiles();
 	}
 	else if (receiveMsg.type == REQ_LIST)
 	{
 		cout << "User " << requestPtr->hostname << " requested for list of files to be sent" << endl;
-		getListOfFiles();
+		sendListOfFiles();
 	}
 
 }
@@ -335,6 +364,11 @@ void TcpThread::run()
 */
 int main(void)
 {
+	//Enable when log to file
+	/*ofstream out("data\\out.txt");
+	streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!*/
+
 	TcpServer ts;
 	/* Start the server and start listening to requests */
 	ts.start();
