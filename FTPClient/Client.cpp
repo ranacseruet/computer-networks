@@ -131,27 +131,51 @@ int TcpClient::makeReliable()
 {
 	//create connection
 	//createConnection();
-
+	sendMsg.type = HANDSHAKE;
 	int random = rand() % 100;
-	char source = char(random);
-	//memcpy(sendMsg.buffer, source, sizeof(source));
+	std::string s = std::to_string(random);
+	
+	strcpy(reqMessage.filename, s.c_str());
+	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+	
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << sendMsg.buffer[0] << ", Waiting... " << endl;
+	
 	/* Send the packed message */
-
 	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+
+
+	
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	if (numBytesSent == SOCKET_ERROR)
 	{
 		cout << "Send failed.. Check the Message length.. " << endl;
-		return 0;
+		return -1;
 	}
 
+	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
+	{
+		random = random + 2;
 
-	return 0;
+		std::string s = std::to_string(random);
 
+		strcpy(reqMessage.filename, s.c_str());
+		memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+
+		/* Include the length of the buffer */
+		sendMsg.length = sizeof(sendMsg.buffer);
+
+		/* Send the packed message */
+		cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+
+
+		/* Send the packed message */
+		numBytesSent = msgSend(clientSock, &sendMsg);
+	}
+
+	closesocket(clientSock);
+	return random;
 }
 
 /**
@@ -196,7 +220,43 @@ void TcpClient::createConnection()
 void TcpClient::listOperation()
 {
 	int i = makeReliable();
+	sendMsg.type = HANDSHAKE;
+	std::string s = std::to_string(i);
 
+	strcpy(reqMessage.filename, s.c_str());
+	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+
+
+	/* Include the length of the buffer */
+	sendMsg.length = sizeof(sendMsg.buffer);
+	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	/* Send the packed message */
+	numBytesSent = msgSend(clientSock, &sendMsg);
+	if (numBytesSent == SOCKET_ERROR)
+	{
+		cout << "Send failed.. Check the Message length.. " << endl;
+		return;
+	}
+
+	
+	/* Retrieve the contents of the file and write the contents to the created file */
+	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
+	{
+		/* If the file does not exist in the server, close the connection and exit */
+		if (strcmp(receiveMsg.buffer, "No such file") == 0)
+		{
+			cout << receiveMsg.buffer << endl;
+			closesocket(clientSock);
+			return;
+		}
+		else /* If the file exists, start reading the contents of the file */
+		{
+			cout << receiveMsg.buffer << endl;
+		}
+	}
+	/* Close the connection after the file is received */
+	
+	closesocket(clientSock);
 }
 
 /**
