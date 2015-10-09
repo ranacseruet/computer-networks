@@ -50,11 +50,8 @@ void getListOfFiles(char files[10000])
 		int i = 0;
 		do {
 			//wprintf_s(data.cFileName);
-			//cout << '\n';
-			//TODO copy file name in the fileList array
 			strcat(files, (char*)data.cFileName);
 			strcat(files, "\n");
-			//memcpy(files[i++], (char*)data.cFileName, sizeof(data.cFileName));
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 		cout << i << " files found\n";
