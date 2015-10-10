@@ -278,6 +278,7 @@ void TcpClient::getOperation()
 	createConnection();
 
 	//int i = makeReliable();
+	sendMsg.type = REQ_GET;
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
 	strcpy(reqMessage.filename,fileName.c_str());
@@ -345,6 +346,7 @@ void TcpClient::deleteOperation()
 	listOperation();
 	createConnection();
 	//int i = makeReliable();
+	sendMsg.type = REQ_DELETE;
 	cout << "Type the name of file to be Deleted: " << endl;
 	getline(cin, fileName);
 	strcpy(reqMessage.filename, fileName.c_str());
