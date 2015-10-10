@@ -74,6 +74,7 @@ public:
 	int msgRecv(int, Msg *);				/* Receive the incoming requests */
 	int msgSend(int, Msg *);				/* Send the response */
 	void sendFileData(char[]);  			/* Sends the contents of the file (get)*/
+	void deleteFile(char[]);
 	unsigned long ResolveName(char name[]);	/* Resolves the host name */
 	void sendListOfFiles();
 };

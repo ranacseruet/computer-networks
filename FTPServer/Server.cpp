@@ -301,6 +301,57 @@ void TcpThread::sendFileData(char fName[20])
 	closesocket(serverSocket);
 }
 
+/**
+* Function - sendFileData
+* Usage: Transfer the requested file to client
+*
+* @arg: char[]
+*/
+void TcpThread::deleteFile(char fName[20])
+{
+	Msg sendMsg;
+	Resp responseMsg;
+	int numBytesSent = 0;
+	ifstream fileToRead;
+	int result;
+	struct _stat stat_buf;
+	/* Lock the code section */
+
+
+	memset(responseMsg.response, 0, sizeof(responseMsg));
+	/* Check the file status and pack the response */
+	if ((result = _stat(fName, &stat_buf)) != 0)
+	{
+		strcpy(responseMsg.response, "No such file");
+		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+		memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
+	}
+	else
+	{
+		cout<<remove(fName); // delete file
+		strcpy(responseMsg.response, "File deleted successfully");
+		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+		memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
+	}
+
+	/* Send the contents of file recursively */
+	if ((numBytesSent = send(serverSocket, sendMsg.buffer, sizeof(responseMsg), 0)) == SOCKET_ERROR)
+	{
+		cout << "Socket Error occured while sending data " << endl;
+		/* Close the connection and unlock the mutex if there is a Socket Error */
+		closesocket(serverSocket);
+
+		return;
+	}
+	else
+	{
+		/* Reset the buffer */
+		memset(sendMsg.buffer, '\0', sizeof(sendMsg.buffer));
+	}
+	/* Close the connection and unlock the Mutex after successful transfer */
+	closesocket(serverSocket);
+}
+
 void TcpThread::sendListOfFiles()
 {
 	char files[10000] = {0};
@@ -355,7 +406,15 @@ void TcpThread::run()
 		cout << "User " << requestPtr->hostname << " requested for list of files to be sent" << endl;
 		sendListOfFiles();
 	}
-
+	else if (receiveMsg.type == REQ_DELETE)
+	{
+		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be deleted" << endl;
+		deleteFile(requestPtr->filename);
+	}
+	else
+	{
+		cout << "Unknown Request Type: " << receiveMsg.type;
+	}
 }
 
 /**
