@@ -377,6 +377,11 @@ void TcpThread::sendListOfFiles()
 	return;
 }
 
+void TcpThread::putFile(char fileContent[10000])
+{
+
+}
+
 /**
 * Function - run
 * Usage: Based on the requested operation, invokes the appropriate function
@@ -410,6 +415,11 @@ void TcpThread::run()
 	{
 		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be deleted" << endl;
 		deleteFile(requestPtr->filename);
+	}
+	else if (receiveMsg.type == REQ_PUT)
+	{
+		cout << "User " << requestPtr->hostname << " sent a file named " << requestPtr->filename << " to be saved" << endl;
+		putFile(requestPtr->filename);
 	}
 	else
 	{

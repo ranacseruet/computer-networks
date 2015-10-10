@@ -77,6 +77,7 @@ public:
 	void deleteFile(char[]);
 	unsigned long ResolveName(char name[]);	/* Resolves the host name */
 	void sendListOfFiles();
+	void putFile(char[]);
 };
 
 #endif
