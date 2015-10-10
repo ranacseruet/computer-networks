@@ -219,8 +219,10 @@ void TcpClient::createConnection()
 */
 void TcpClient::listOperation()
 {
-	//int i = makeReliable();
+	
 	createConnection();
+
+	//int i = makeReliable();
 	sendMsg.type = REQ_LIST;
 	std::string s = "";
 
@@ -332,7 +334,42 @@ void TcpClient::putOperation()
 */
 void TcpClient::deleteOperation()
 {
-	//need to implement
+	createConnection();
+	//int i = makeReliable();
+	cout << "Type the name of file to be Deleted: " << endl;
+	getline(cin, fileName);
+	strcpy(reqMessage.filename, fileName.c_str());
+	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+	/* Include the length of the buffer */
+	sendMsg.length = sizeof(sendMsg.buffer);
+	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	/* Send the packed message */
+	numBytesSent = msgSend(clientSock, &sendMsg);
+	if (numBytesSent == SOCKET_ERROR)
+	{
+		cout << "Send failed.. Check the Message length.. " << endl;
+		return;
+	}
+
+	ofstream myFile(fileName, ios::out | ios::binary);
+	/* Retrieve the contents of the file and write the contents to the created file */
+	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
+	{
+		/* If the file does not exist in the server, close the connection and exit */
+		if (strcmp(receiveMsg.buffer, "No such file") == 0)
+		{
+			cout << receiveMsg.buffer << endl;
+			closesocket(clientSock);
+			return;
+		}
+		else /* If the file exists, start reading the contents of the file */
+		{
+			cout << receiveMsg.buffer << endl;
+		}
+	}
+	
+	closesocket(clientSock);
+	return;
 }
 
 /**
