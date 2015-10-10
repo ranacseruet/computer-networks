@@ -219,9 +219,10 @@ void TcpClient::createConnection()
 */
 void TcpClient::listOperation()
 {
-	int i = makeReliable();
+	//int i = makeReliable();
+	createConnection();
 	sendMsg.type = REQ_LIST;
-	std::string s = std::to_string(i);
+	std::string s = "";
 
 	strcpy(reqMessage.filename, s.c_str());
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
@@ -243,7 +244,7 @@ void TcpClient::listOperation()
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		/* If the file does not exist in the server, close the connection and exit */
-		if (strcmp(receiveMsg.buffer, "No such file") == 0)
+		if (strcmp(receiveMsg.buffer, "No files") == 0)
 		{
 			cout << receiveMsg.buffer << endl;
 			closesocket(clientSock);
@@ -257,6 +258,7 @@ void TcpClient::listOperation()
 	/* Close the connection after the file is received */
 	
 	closesocket(clientSock);
+	return;
 }
 
 /**
