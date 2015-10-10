@@ -24,11 +24,17 @@ typedef enum
 	HANDSHAKE	= 5,
 } Type;
 
-/* Request message structure */
+typedef struct
+{
+	char dataBuffer[BUFFER_LENGTH];
+} DataContent; //For Put Operation
+
+			   /* Structure of Request */
 typedef struct
 {
 	char hostname[HOSTNAME_LENGTH];
 	char filename[FILENAME_LENGTH];
+	DataContent data;
 } Req;
 
 /* Response message structure */

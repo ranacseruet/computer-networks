@@ -31,18 +31,21 @@ typedef enum
 	HANDSHAKE	= 5,
 } Type;
 
+typedef struct
+{
+	char dataBuffer[BUFFER_LENGTH];
+} DataContent; //For Put Operation
+
 /* Structure of Request */
 typedef struct
 {
 	char hostname[HOSTNAME_LENGTH];
 	char filename[FILENAME_LENGTH];
+	DataContent data;
 } Req;  
 
 /* Buffer for uploading file contents */
-typedef struct
-{
-	char dataBuffer[BUFFER_LENGTH];
-} DataContent; //For Put Operation
+
 
 /* Message format used for sending and receiving */
 typedef struct

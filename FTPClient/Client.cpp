@@ -248,7 +248,7 @@ void TcpClient::listOperation()
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		/* If the file does not exist in the server, close the connection and exit */
-		if (strcmp(receiveMsg.buffer, "No files") == 0)
+		if (strcmp(receiveMsg.buffer, "No files available") == 0)
 		{
 			cout << receiveMsg.buffer << endl;
 			closesocket(clientSock);
