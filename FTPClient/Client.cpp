@@ -227,6 +227,7 @@ void TcpClient::listOperation()
 	std::string s = "";
 
 	strcpy(reqMessage.filename, s.c_str());
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 
 
@@ -235,6 +236,7 @@ void TcpClient::listOperation()
 	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	if (numBytesSent == SOCKET_ERROR)
 	{
 		cout << "Send failed.. Check the Message length.. " << endl;
@@ -259,6 +261,7 @@ void TcpClient::listOperation()
 	}
 	/* Close the connection after the file is received */
 	
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	closesocket(clientSock);
 	return;
 }
@@ -271,17 +274,21 @@ void TcpClient::listOperation()
  */
 void TcpClient::getOperation()
 { 
+	listOperation();
 	createConnection();
+
 	//int i = makeReliable();
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
 	strcpy(reqMessage.filename,fileName.c_str());
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer,&reqMessage,sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length=sizeof(sendMsg.buffer);
 	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
     if (numBytesSent == SOCKET_ERROR)
 	{
 		cout << "Send failed.. Check the Message length.. " << endl;     
@@ -310,6 +317,7 @@ void TcpClient::getOperation()
 	/* Close the connection after the file is received */
     cout << "File received "<< endl << endl;
 	myFile.close();
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	closesocket(clientSock);
 }
 
@@ -334,17 +342,20 @@ void TcpClient::putOperation()
 */
 void TcpClient::deleteOperation()
 {
+	listOperation();
 	createConnection();
 	//int i = makeReliable();
 	cout << "Type the name of file to be Deleted: " << endl;
 	getline(cin, fileName);
 	strcpy(reqMessage.filename, fileName.c_str());
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
 	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	if (numBytesSent == SOCKET_ERROR)
 	{
 		cout << "Send failed.. Check the Message length.. " << endl;
@@ -368,6 +379,7 @@ void TcpClient::deleteOperation()
 		}
 	}
 	
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	closesocket(clientSock);
 	return;
 }
