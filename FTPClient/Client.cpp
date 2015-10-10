@@ -257,7 +257,6 @@ void TcpClient::listOperation()
 	/* Close the connection after the file is received */
 	
 	closesocket(clientSock);
-	return;
 }
 
 /**
