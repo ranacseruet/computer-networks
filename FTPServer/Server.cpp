@@ -366,6 +366,10 @@ void TcpThread::sendListOfFiles()
 	int numBytesSent = 0;
 
 	getListOfFiles(files);
+	if (strlen(files) <= 0)
+	{
+		strcpy(responseMsg.response, "No files available");
+	}
 	strcpy(responseMsg.response, files);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
