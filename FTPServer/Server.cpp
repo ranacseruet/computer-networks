@@ -243,12 +243,14 @@ void TcpThread::sendFileData(char fName[20])
 	ifstream fileToRead;
 	int result;
 	struct _stat stat_buf;
+	char fullFilePath[100] = "data\\";
 	/* Lock the code section */
 
 
 	memset(responseMsg.response, 0, sizeof(responseMsg));
 	/* Check the file status and pack the response */
-	if ((result = _stat(fName, &stat_buf)) != 0)
+	strcat(fullFilePath, fName);
+	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		strcpy(responseMsg.response, "No such file");
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -270,7 +272,7 @@ void TcpThread::sendFileData(char fName[20])
 	}
 	else
 	{
-		fileToRead.open(fName, ios::in | ios::binary);
+		fileToRead.open(fullFilePath, ios::in | ios::binary);
 		if (fileToRead.is_open())
 		{
 			while (!fileToRead.eof())
