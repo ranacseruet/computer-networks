@@ -220,7 +220,7 @@ void TcpClient::createConnection()
 void TcpClient::listOperation()
 {
 	int i = makeReliable();
-	sendMsg.type = HANDSHAKE;
+	sendMsg.type = REQ_LIST;
 	std::string s = std::to_string(i);
 
 	strcpy(reqMessage.filename, s.c_str());
@@ -267,7 +267,8 @@ void TcpClient::listOperation()
  */
 void TcpClient::getOperation()
 { 
-	int i = makeReliable();
+	createConnection();
+	//int i = makeReliable();
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
 	strcpy(reqMessage.filename,fileName.c_str());
