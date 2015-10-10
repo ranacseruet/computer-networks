@@ -317,12 +317,16 @@ void TcpThread::deleteFile(char fName[20])
 	ifstream fileToRead;
 	int result;
 	struct _stat stat_buf;
-	/* Lock the code section */
+	char fullFilePath[1000] = "";
+	_getcwd(fullFilePath, sizeof(fullFilePath));
 
+	/* Lock the code section */
+	strcat(fullFilePath, "\\data\\");
+	strcat(fullFilePath, fName);
 
 	memset(responseMsg.response, 0, sizeof(responseMsg));
 	/* Check the file status and pack the response */
-	if ((result = _stat(fName, &stat_buf)) != 0)
+	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		strcpy(responseMsg.response, "No such file");
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -330,7 +334,7 @@ void TcpThread::deleteFile(char fName[20])
 	}
 	else
 	{
-		cout<<remove(fName); // delete file
+		cout << remove(fullFilePath); // delete file
 		strcpy(responseMsg.response, "File deleted successfully");
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 		memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
