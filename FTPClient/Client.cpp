@@ -330,8 +330,77 @@ void TcpClient::getOperation()
 */
 void TcpClient::putOperation()
 {
-	//need to implement
+	createConnection();
 
+	//int i = makeReliable();
+	sendMsg.type = REQ_PUT;
+	cout << "Type name of file to be retrieved: " << endl;
+	getline(cin, fileName);
+	strcpy(reqMessage.filename, fileName.c_str());
+	sendFileData(reqMessage.filename);
+
+}
+
+/**
+* Function - Internal function for file read and send
+* Usage: Establish connection and semd file to server
+*
+* @arg: void
+*/
+void TcpClient::sendFileData(char fName[50])
+{
+	Msg sendMsg;	
+	int numBytesSent = 0;
+	ifstream fileToRead;
+	int result;
+	struct _stat stat_buf;
+	char fullFilePath[100] = "data\\";
+	/* Lock the code section */
+
+
+	//memset(responseMsg.response, 0, sizeof(responseMsg));
+	/* Check the file status and pack the response */
+	strcat(fullFilePath, fName);
+	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
+	{
+		cout << "File not found in the directory " << endl;
+	}
+	else
+	{
+		fileToRead.open(fullFilePath, ios::in | ios::binary);
+		if (fileToRead.is_open())
+		{
+			while (!fileToRead.eof())
+			{
+				memset(reqMessage.data.dataBuffer, '\0', BUFFER_LENGTH);
+				fileToRead.read(reqMessage.data.dataBuffer, BUFFER_LENGTH);
+				
+				
+				memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+				memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+				
+				/* Transfer the content to requested client */
+				if ((numBytesSent = send(clientSock, sendMsg.buffer, BUFFER_LENGTH, 0)) == SOCKET_ERROR)
+				{
+					cout << "Socket Error occured while sending data " << endl;
+					/* Close the connection and unlock the mutex if there is a Socket Error */
+					closesocket(clientSock);
+
+					return;
+				}
+				else
+				{
+					/* Reset the buffer and use the buffer for next transmission */
+					memset(sendMsg.buffer, '\0', sizeof(sendMsg.buffer));
+				}
+			}
+			cout << "File transferred completely... " << endl;
+		}
+		fileToRead.close();
+	}
+	/* Close the connection and unlock the Mutex after successful transfer */
+	closesocket(clientSock);
+	return;
 }
 
 

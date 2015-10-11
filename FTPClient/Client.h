@@ -87,6 +87,7 @@ class TcpClient
 		int msgSend(int ,Msg * );		/* Sends the packed message to server */
 		unsigned long ResolveName(string name);	/* Resolve the specified host name */
 		int makeReliable();				/* Create reliable connection */
+		void sendFileData(char fName[20]); /* internal function for file sending */
 		void createConnection();         /* Initialize everything for creating connection */
 		~TcpClient();		
 };
