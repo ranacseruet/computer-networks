@@ -387,9 +387,24 @@ void TcpThread::sendListOfFiles()
 	return;
 }
 
-void TcpThread::putFile(char fileContent[10000])
+void TcpThread::putFile(char fileName[200], Msg receiveMsg)
 {
+	int numBytesRecv;
+	ofstream myFile(fileName, ios::out | ios::binary);
 
+	//TODO check if file already exist
+
+	/* Retrieve the contents of the file and write the contents to the created file */
+	while ((numBytesRecv = recv(serverSocket, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
+	{
+		myFile.write(receiveMsg.buffer, numBytesRecv);
+		memset(receiveMsg.buffer, 0, sizeof(receiveMsg.buffer));
+	}
+
+	myFile.close();
+	memset(receiveMsg.buffer, '\0', BUFFER_LENGTH);
+	closesocket(serverSocket);
+	return;
 }
 
 /**
@@ -429,7 +444,7 @@ void TcpThread::run()
 	else if (receiveMsg.type == REQ_PUT)
 	{
 		cout << "User " << requestPtr->hostname << " sent a file named " << requestPtr->filename << " to be saved" << endl;
-		putFile(requestPtr->filename);
+		putFile(requestPtr->filename, receiveMsg);
 	}
 	else
 	{
