@@ -11,6 +11,7 @@
 #include <fstream>
 #include <climits>
 #include <windows.h>
+#include <sys/stat.h>
 
 using namespace std;
 

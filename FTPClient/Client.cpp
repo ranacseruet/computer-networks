@@ -4,6 +4,9 @@
 **************************************************************************************/
 #define _CRT_SECURE_NO_WARNINGS
 #include "Client.h"
+#include <direct.h>
+#define GetCurrentDir _getcwd
+
 using namespace std;
 
 /**
@@ -334,12 +337,13 @@ void TcpClient::putOperation()
 
 	//int i = makeReliable();
 	sendMsg.type = REQ_PUT;
-	cout << "Type name of file to be retrieved: " << endl;
+	cout << "Type name of file to be sent: " << endl;
 	getline(cin, fileName);
 	strcpy(reqMessage.filename, fileName.c_str());
 	sendFileData(reqMessage.filename);
-
+	return;
 }
+
 
 /**
 * Function - Internal function for file read and send
@@ -354,13 +358,30 @@ void TcpClient::sendFileData(char fName[50])
 	ifstream fileToRead;
 	int result;
 	struct _stat stat_buf;
-	char fullFilePath[100] = "data\\";
+
+	char cCurrentPath[100];
+
+	if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
+	{
+		cout << "error " << endl;
+		return;
+	}
+
+	cCurrentPath[sizeof(cCurrentPath) - 1] = '\0';
+
+	char folderLocation[20] = "\\data\\";
 	/* Lock the code section */
+	strcat(cCurrentPath, folderLocation);
+
+	char fullFilePath[200] = "";
+	strcat(fullFilePath, cCurrentPath);
 
 
 	//memset(responseMsg.response, 0, sizeof(responseMsg));
 	/* Check the file status and pack the response */
 	strcat(fullFilePath, fName);
+	
+	cout << fullFilePath << endl;
 	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		cout << "File not found in the directory " << endl;
