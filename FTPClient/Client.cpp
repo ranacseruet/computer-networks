@@ -509,8 +509,8 @@ void TcpClient::deleteOperation()
 
 
 /**
-* Function - deleteOperation
-* Usage: Establish connection and delete a file in the server
+* Function - renameOperation
+* Usage: Establish connection and ranme a file in the server
 *
 * @arg: void
 */
@@ -520,7 +520,7 @@ void TcpClient::renameOperation()
 	createConnection();
 	//int i = makeReliable();
 	sendMsg.type = REQ_RENAME;
-	cout << "Type the name of file to be rename at server:    (Format: form_filename_space_to_filename)" << endl;
+	cout << "Type file name to be renamed:    (Format: formFileName_Space_toFileName)" << endl;
 	getline(cin, fileName);
 	strcpy(reqMessage.filename, fileName.c_str());
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
