@@ -145,7 +145,7 @@ int TcpClient::makeReliable()
 	//create connection
 	createConnection();
 	sendMsg.type	= HANDSHAKE;
-	int random		= rand() % 100;
+	int random		= (rand() % 100)+1;
 	
 	reqMessage.seq = 0;
 	reqMessage.seq = random;
@@ -157,7 +157,7 @@ int TcpClient::makeReliable()
 	sendMsg.length = sizeof(sendMsg.buffer);
 	
 	/* Send the packed message */
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	cout << endl << endl << "Sent Handshake Request to " << serverIpAdd <<" with seq#"<<random<< ", Waiting... " << endl;
 
 
 	
@@ -174,10 +174,11 @@ int TcpClient::makeReliable()
 
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
+		Req *ptr = (Req *)receiveMsg.buffer;
+		cout << "Server sent sequence#" << ptr->seq << endl;
 		random = random + 2;
-		reqMessage.seq = 0;
 		reqMessage.seq = random;
-
+		reqMessage.ack = ptr->seq +1;
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 		memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 
@@ -187,9 +188,14 @@ int TcpClient::makeReliable()
 		/* Send the packed message */
 		cout << endl << endl << "Sent Final Sequence to " << serverIpAdd << ", Waiting... " << endl;
 
-
 		/* Send the packed message */
 		numBytesSent = msgSend(clientSock, &sendMsg);
+		if (numBytesSent == SOCKET_ERROR)
+		{
+			cout << "Send failed.. Check the Message length.. " << endl;
+			closesocket(clientSock);
+			return -1;
+		}
 		break;
 	}
 
@@ -295,9 +301,9 @@ void TcpClient::listOperation()
 void TcpClient::getOperation()
 { 
 	listOperation();
+	int i = makeReliable();
 	createConnection();
 
-	//int i = makeReliable();
 	sendMsg.type = REQ_GET;
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
