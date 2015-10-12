@@ -115,7 +115,7 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 	int len;
 	if((len=send(clientSocket,(char *)msg_ptr,MSGHDRSIZE+msg_ptr->length,0))!=(MSGHDRSIZE+msg_ptr->length))
 	{
-		cerr<<"Send MSGHDRSIZE+length Error";
+		cerr << "Send MSGHDRSIZE+length Error. Sent Length: " << len;
 		return(1);
 	}
 	/*Return the length of data in bytes, which has been sent out successfully */
@@ -352,8 +352,7 @@ void TcpClient::putOperation()
 * @arg: void
 */
 void TcpClient::sendFileData(char fName[50])
-{
-	Msg sendMsg;	
+{	
 	int numBytesSent = 0;
 	ifstream fileToRead;
 	int result;
@@ -385,10 +384,23 @@ void TcpClient::sendFileData(char fName[50])
 	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		cout << "File not found in the directory " << endl;
+		return;
 	}
 	else
 	{
+		cout << "File Found. Sending Request" << endl;
+		memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+		sendMsg.length = sizeof(sendMsg.buffer);
+		numBytesSent = msgSend(clientSock, &sendMsg);
+		if (numBytesSent == SOCKET_ERROR)
+		{
+			cout << "Send failed.. Check the Message length.. " << endl;
+			return;
+		}
+		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+		cout << "PUT Req sent. Sending Data"<<endl;
 		fileToRead.open(fullFilePath, ios::in | ios::binary);
+		
 		if (fileToRead.is_open())
 		{
 			while (!fileToRead.eof())
@@ -396,22 +408,21 @@ void TcpClient::sendFileData(char fName[50])
 				memset(reqMessage.data.dataBuffer, '\0', BUFFER_LENGTH);
 				fileToRead.read(reqMessage.data.dataBuffer, BUFFER_LENGTH);
 				
-				
 				memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 				memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
-				
-				/* Transfer the content to requested client */
+				sendMsg.length = sizeof(sendMsg.buffer);
+				// Transfer the content to requested client
 				if ((numBytesSent = send(clientSock, sendMsg.buffer, BUFFER_LENGTH, 0)) == SOCKET_ERROR)
 				{
 					cout << "Socket Error occured while sending data " << endl;
-					/* Close the connection and unlock the mutex if there is a Socket Error */
+					// Close the connection and unlock the mutex if there is a Socket Error
 					closesocket(clientSock);
 
 					return;
 				}
 				else
 				{
-					/* Reset the buffer and use the buffer for next transmission */
+					//* Reset the buffer and use the buffer for next transmission
 					memset(sendMsg.buffer, '\0', sizeof(sendMsg.buffer));
 				}
 			}

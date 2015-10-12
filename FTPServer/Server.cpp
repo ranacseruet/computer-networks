@@ -393,12 +393,12 @@ void TcpThread::putFile(char fileName[200], Msg receiveMsg)
 	ofstream myFile(fileName, ios::out | ios::binary);
 
 	//TODO check if file already exist
-
+	memset(receiveMsg.buffer, '\0', sizeof(receiveMsg.buffer));
 	/* Retrieve the contents of the file and write the contents to the created file */
 	while ((numBytesRecv = recv(serverSocket, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		myFile.write(receiveMsg.buffer, numBytesRecv);
-		memset(receiveMsg.buffer, 0, sizeof(receiveMsg.buffer));
+		memset(receiveMsg.buffer, '\0', sizeof(receiveMsg.buffer));
 	}
 
 	myFile.close();
