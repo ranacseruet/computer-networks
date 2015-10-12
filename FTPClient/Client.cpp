@@ -133,12 +133,15 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 int TcpClient::makeReliable()
 {
 	//create connection
-	//createConnection();
-	sendMsg.type = HANDSHAKE;
-	int random = rand() % 100;
-	std::string s = std::to_string(random);
+	createConnection();
+	sendMsg.type	= HANDSHAKE;
+	int random		= rand() % 100;
+	std::string s	= std::to_string(random);
 	
-	strcpy(reqMessage.filename, s.c_str());
+	memset(reqMessage.seq, '\0', ACK_LENGHT);
+	strcpy(reqMessage.seq, s.c_str());
+
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 	
 	/* Include the length of the buffer */
@@ -151,19 +154,23 @@ int TcpClient::makeReliable()
 	
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	
 	if (numBytesSent == SOCKET_ERROR)
 	{
 		cout << "Send failed.. Check the Message length.. " << endl;
+		closesocket(clientSock);
 		return -1;
 	}
 
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		random = random + 2;
-
 		std::string s = std::to_string(random);
+		memset(reqMessage.seq, '\0', ACK_LENGHT);
+		strcpy(reqMessage.seq, s.c_str());
 
-		strcpy(reqMessage.filename, s.c_str());
+		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 		memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 
 		/* Include the length of the buffer */
@@ -225,7 +232,7 @@ void TcpClient::listOperation()
 	
 	createConnection();
 
-	//int i = makeReliable();
+	int i = makeReliable();
 	sendMsg.type = REQ_LIST;
 	std::string s = "";
 
