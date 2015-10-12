@@ -31,6 +31,7 @@ typedef enum
 	REQ_PUT		= 3,
 	REQ_DELETE	= 4,
 	HANDSHAKE	= 5,
+	REQ_RENAME  = 6,
 } Type;
 
 typedef struct
@@ -92,6 +93,7 @@ class TcpClient
 		unsigned long ResolveName(string name);	/* Resolve the specified host name */
 		int makeReliable();				/* Create reliable connection */
 		void sendFileData(char fName[20]); /* internal function for file sending */
+		void renameOperation();			 /* rename a file into Server */
 		void createConnection();         /* Initialize everything for creating connection */
 		~TcpClient();		
 };

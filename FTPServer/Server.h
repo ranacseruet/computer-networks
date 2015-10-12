@@ -23,6 +23,7 @@ typedef enum
 	REQ_PUT		= 3,
 	REQ_DELETE	= 4,
 	HANDSHAKE	= 5,
+	REQ_RENAME  = 6,
 } Type;
 
 typedef struct
