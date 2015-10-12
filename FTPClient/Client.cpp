@@ -76,6 +76,16 @@ void TcpClient::run()
 			deleteOperation();
 		}
 	}
+	else if (strcmp(transferType.c_str(), "rename") == 0)
+	{
+		cin.ignore();
+		if (connectionStatus)
+		{
+			/* Initiate file retrieval */
+			sendMsg.type = REQ_RENAME;
+			renameOperation();
+		}
+	}
 	else
 	{
 		cerr<<"Wrong request type";
@@ -180,6 +190,7 @@ int TcpClient::makeReliable()
 
 		/* Send the packed message */
 		numBytesSent = msgSend(clientSock, &sendMsg);
+		break;
 	}
 
 	closesocket(clientSock);
@@ -489,6 +500,59 @@ void TcpClient::deleteOperation()
 	return;
 }
 
+
+
+/**
+* Function - deleteOperation
+* Usage: Establish connection and delete a file in the server
+*
+* @arg: void
+*/
+void TcpClient::renameOperation()
+{
+	listOperation();
+	createConnection();
+	//int i = makeReliable();
+	sendMsg.type = REQ_RENAME;
+	cout << "Type the name of file to be rename at server:    (Format: form_filename_space_to_filename)" << endl;
+	getline(cin, fileName);
+	strcpy(reqMessage.filename, fileName.c_str());
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+	/* Include the length of the buffer */
+	sendMsg.length = sizeof(sendMsg.buffer);
+	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	/* Send the packed message */
+	numBytesSent = msgSend(clientSock, &sendMsg);
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	if (numBytesSent == SOCKET_ERROR)
+	{
+		cout << "Send failed.. Check the Message length.. " << endl;
+		return;
+	}
+
+	/* Retrieve the contents of the file and write the contents to the created file */
+	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
+	{
+		/* If the file does not exist in the server, close the connection and exit */
+		if (strcmp(receiveMsg.buffer, "No such file") == 0)
+		{
+			cout << receiveMsg.buffer << endl;
+			closesocket(clientSock);
+			return;
+		}
+		else /* If the file exists, start reading the contents of the file */
+		{
+			cout << receiveMsg.buffer << endl;
+		}
+	}
+
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	closesocket(clientSock);
+	return;
+}
+
+
 /**
  * Function - showMenu
  * Usage: Display the Menu with options for the User to select based on the operation
@@ -502,7 +566,8 @@ void TcpClient::showMenu()
 	cout << "2 : GET " << endl;
 	cout << "3 : PUT " << endl;
 	cout << "4 : DELETE " << endl;
-	cout << "5 : EXIT " << endl;
+	cout << "5 : RENAME " << endl;
+	cout << "6 : EXIT " << endl;
 	cout << "Please select the operation that you want to perform : ";
 	/* Check if invalid value is provided and reset if cin error flag is set */
 	if(!(cin >> optionVal))
@@ -539,6 +604,11 @@ void TcpClient::showMenu()
 			break;
 
 		case 5:
+			transferType = "rename";
+			run();
+			break;
+
+		case 6:
 			cout << "Terminating... " << endl; 
 			exit(1);
 			break;
