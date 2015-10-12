@@ -422,15 +422,15 @@ void TcpThread::putFile(char fileName[200], Msg receiveMsg)
 int TcpThread::handshake(int seq)
 {
 	Msg sendMsg, receiveMsg;
-	Resp responseMsg;
+	Req responseMsg, *requestMsg;
 	int numBytesSent = 0, numBytesRecv = 0;
-	int serverSeq=0, ack=0;
-	memset(responseMsg.response, '\0', sizeof(responseMsg.response));
-	responseMsg.response[0] = (char)(seq + 1);
+	int serverSeq = (rand() % 100) + 1, ack = 0;
+	cout << "Client Sent Seq#" << seq;
+	responseMsg.ack = (seq + 1);
+	responseMsg.seq = serverSeq;
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
 	/* Send the contents of file recursively */
-	//TODO set own seq number
 	if ((numBytesSent = send(serverSocket, sendMsg.buffer, sizeof(responseMsg), 0)) == SOCKET_ERROR)
 	{
 		cout << "Socket Error occured while sending Handshake data " << endl;
@@ -442,12 +442,14 @@ int TcpThread::handshake(int seq)
 	{
 		cout << "Socket Error occured while recieving final ack" << endl;
 	}
+	requestMsg = (Req *)receiveMsg.buffer;
 
-	ack = (int)receiveMsg.buffer[0];
+	ack = (int)requestMsg->ack;
 
 	//TODO verify
 	if (ack != (serverSeq + 1))
 	{
+		cout << "client sent invalid ack#" << ack<<endl;
 		//HANDSHAKE FAILED
 	}
 
@@ -497,7 +499,7 @@ void TcpThread::run()
 	else if (receiveMsg.type == HANDSHAKE)
 	{
 		cout << "User " << requestPtr->hostname << " trying for handshake" << endl;
-		handshake((int)receiveMsg.buffer[0]);
+		handshake((int)requestPtr->seq);
 	}
 	else
 	{

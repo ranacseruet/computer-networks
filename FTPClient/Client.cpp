@@ -135,7 +135,7 @@ int TcpClient::makeReliable()
 	//create connection
 	createConnection();
 	sendMsg.type	= HANDSHAKE;
-	int random		= rand() % 100;
+	int random		= (rand() % 100)+1;
 	
 	reqMessage.seq = 0;
 	reqMessage.seq = random;
@@ -165,7 +165,6 @@ int TcpClient::makeReliable()
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		random = random + 2;
-		reqMessage.seq = 0;
 		reqMessage.seq = random;
 
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -283,9 +282,9 @@ void TcpClient::listOperation()
 void TcpClient::getOperation()
 { 
 	listOperation();
+	//int i = makeReliable();
 	createConnection();
 
-	//int i = makeReliable();
 	sendMsg.type = REQ_GET;
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
