@@ -35,8 +35,8 @@ typedef struct
 {
 	char hostname[HOSTNAME_LENGTH];
 	char filename[FILENAME_LENGTH];
-	char seq[ACK_LENGHT];
-	char ack[ACK_LENGHT];
+	int seq;
+	int ack;
 	DataContent data;
 } Req;
 

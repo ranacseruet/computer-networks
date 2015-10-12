@@ -136,10 +136,9 @@ int TcpClient::makeReliable()
 	createConnection();
 	sendMsg.type	= HANDSHAKE;
 	int random		= rand() % 100;
-	std::string s	= std::to_string(random);
 	
-	memset(reqMessage.seq, '\0', ACK_LENGHT);
-	strcpy(reqMessage.seq, s.c_str());
+	reqMessage.seq = 0;
+	reqMessage.seq = random;
 
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
@@ -166,9 +165,8 @@ int TcpClient::makeReliable()
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		random = random + 2;
-		std::string s = std::to_string(random);
-		memset(reqMessage.seq, '\0', ACK_LENGHT);
-		strcpy(reqMessage.seq, s.c_str());
+		reqMessage.seq = 0;
+		reqMessage.seq = random;
 
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 		memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
@@ -177,7 +175,7 @@ int TcpClient::makeReliable()
 		sendMsg.length = sizeof(sendMsg.buffer);
 
 		/* Send the packed message */
-		cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+		cout << endl << endl << "Sent Final Sequence to " << serverIpAdd << ", Waiting... " << endl;
 
 
 		/* Send the packed message */
@@ -232,7 +230,7 @@ void TcpClient::listOperation()
 	
 	createConnection();
 
-	int i = makeReliable();
+	//int i = makeReliable();
 	sendMsg.type = REQ_LIST;
 	std::string s = "";
 
