@@ -405,11 +405,8 @@ void TcpClient::sendFileData(char fName[50])
 		{
 			while (!fileToRead.eof())
 			{
-				memset(reqMessage.data.dataBuffer, '\0', BUFFER_LENGTH);
-				fileToRead.read(reqMessage.data.dataBuffer, BUFFER_LENGTH);
-				
 				memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
-				memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
+				fileToRead.read(sendMsg.buffer, BUFFER_LENGTH);
 				sendMsg.length = sizeof(sendMsg.buffer);
 				// Transfer the content to requested client
 				if ((numBytesSent = send(clientSock, sendMsg.buffer, BUFFER_LENGTH, 0)) == SOCKET_ERROR)

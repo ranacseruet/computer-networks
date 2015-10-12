@@ -66,6 +66,14 @@ void getListOfFiles(char files[10000])
 	}
 }
 
+void getDataDirectoryPath(char fullFilePath[200])
+{
+	//_getcwd(fullFilePath, sizeof(fullFilePath));
+
+	/* Lock the code section */
+	strcat(fullFilePath, "data\\");
+}
+
 /**
 * Constructor - TcpServer
 * Usage: Initialize the socket connection
@@ -317,13 +325,12 @@ void TcpThread::deleteFile(char fName[20])
 	ifstream fileToRead;
 	int result;
 	struct _stat stat_buf;
-	char fullFilePath[1000] = "";
-	_getcwd(fullFilePath, sizeof(fullFilePath));
-
-	/* Lock the code section */
-	strcat(fullFilePath, "\\data\\");
+	char fullFilePath[200] = "";
+	getDataDirectoryPath(fullFilePath);
 	strcat(fullFilePath, fName);
 
+	cout << "file to be deleted: " << fullFilePath;
+	/* Lock the code section */
 	memset(responseMsg.response, 0, sizeof(responseMsg));
 	/* Check the file status and pack the response */
 	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
@@ -390,18 +397,23 @@ void TcpThread::sendListOfFiles()
 void TcpThread::putFile(char fileName[200], Msg receiveMsg)
 {
 	int numBytesRecv;
-	ofstream myFile(fileName, ios::out | ios::binary);
+	char fullFilePath[200] = "";
+	getDataDirectoryPath(fullFilePath);
+	strcat(fullFilePath, fileName);
+
+	ofstream myFile(fullFilePath, ios::out | ios::binary);
 
 	//TODO check if file already exist
 	memset(receiveMsg.buffer, '\0', sizeof(receiveMsg.buffer));
 	/* Retrieve the contents of the file and write the contents to the created file */
 	while ((numBytesRecv = recv(serverSocket, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
+		cout << receiveMsg.buffer<< " NOB# " << numBytesRecv << endl;
 		myFile.write(receiveMsg.buffer, numBytesRecv);
 		memset(receiveMsg.buffer, '\0', sizeof(receiveMsg.buffer));
 	}
-
 	myFile.close();
+	cout << "file saved successfully";
 	memset(receiveMsg.buffer, '\0', BUFFER_LENGTH);
 	closesocket(serverSocket);
 	return;
