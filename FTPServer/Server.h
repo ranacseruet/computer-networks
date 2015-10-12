@@ -84,6 +84,7 @@ public:
 	unsigned long ResolveName(char name[]);	/* Resolves the host name */
 	void sendListOfFiles();
 	void putFile(char[], Msg);
+	int handshake(int);
 };
 
 #endif
