@@ -21,6 +21,7 @@ using namespace std;
 #define REQUEST_PORT 5001
 #define BUFFER_LENGTH 256
 #define MSGHDRSIZE 8
+#define ACK_LENGHT 3
 
 /* Types of Messages */
 typedef enum
@@ -42,6 +43,8 @@ typedef struct
 {
 	char hostname[HOSTNAME_LENGTH];
 	char filename[FILENAME_LENGTH];
+	char seq[ACK_LENGHT];
+	char seq[ACK_LENGHT];
 	DataContent data;
 } Req;  
 
