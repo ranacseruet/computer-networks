@@ -69,6 +69,7 @@ class TcpClient
 		struct sockaddr_in ServAddr;	/* Server socket address */
 		unsigned short ServPort;		/* Server port */
 		char hostName[HOSTNAME_LENGTH];	/* Host Name */
+		int seq_num;                    /* Variable to store seq number */  
 		Req reqMessage;					/* Variable to store Request Message */
 		Msg sendMsg,receiveMsg;			/* Message structure variables for Sending and Receiving data */
 		WSADATA wsaData;				/* Variable to store socket information */
