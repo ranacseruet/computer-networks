@@ -54,7 +54,6 @@ typedef struct
 typedef struct
 {
 	char response[RESP_LENGTH];
-	int ack;
 } Resp;
 
 /* Buffer for uploading file contents */
