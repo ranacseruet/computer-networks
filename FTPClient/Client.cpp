@@ -683,6 +683,11 @@ TcpClient::~TcpClient()
  */
 int main(int argc, char *argv[])
 {
+	//Enable when log to file
+	ofstream out("client_log.txt");
+	streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
 	TcpClient * tc=new TcpClient();
 	tc->startClient();
 	while(1)
