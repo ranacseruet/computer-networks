@@ -45,6 +45,7 @@ typedef struct
 typedef struct
 {
 	char response[RESP_LENGTH];
+	int ack;
 } Resp;
 
 /* Message format used for sending and receiving datas */

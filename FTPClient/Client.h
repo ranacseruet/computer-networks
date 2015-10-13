@@ -22,6 +22,7 @@ using namespace std;
 #define BUFFER_LENGTH 256
 #define MSGHDRSIZE 8
 #define ACK_LENGHT 3
+#define RESP_LENGTH 40
 
 /* Types of Messages */
 typedef enum
@@ -49,6 +50,13 @@ typedef struct
 	DataContent data;
 } Req;  
 
+/* Response message structure */
+typedef struct
+{
+	char response[RESP_LENGTH];
+	int ack;
+} Resp;
+
 /* Buffer for uploading file contents */
 
 
@@ -71,6 +79,7 @@ class TcpClient
 		char hostName[HOSTNAME_LENGTH];	/* Host Name */
 		int seq_num;                    /* Variable to store seq number */  
 		Req reqMessage;					/* Variable to store Request Message */
+		Resp resMessage;
 		Msg sendMsg,receiveMsg;			/* Message structure variables for Sending and Receiving data */
 		WSADATA wsaData;				/* Variable to store socket information */
 		string serverIpAdd;				/* Variable to store Server IP Address */
@@ -80,7 +89,7 @@ class TcpClient
 		int numBytesRecv;				/* Variable to store the bytes of data received from the server */
 		int bufferSize;					/* Variable to specify the buffer size */
 		bool connectionStatus;			/* Variable to specify the status of the socket connection */
-	
+		
 	public:
 		TcpClient(); 
 		void run();						/* Invokes the appropriate function based on selected option */
