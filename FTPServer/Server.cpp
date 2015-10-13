@@ -15,6 +15,7 @@
 //#include <mutex>
 #include <direct.h>
 #include <vector>
+#include <algorithm>
 
 #include "Thread.h"
 #include "server.h"
@@ -72,6 +73,13 @@ void getDataDirectoryPath(char fullFilePath[200])
 
 	/* Lock the code section */
 	strcat(fullFilePath, "data\\");
+}
+
+int getposition(const char *array, size_t size, char c)
+{
+	const char* end = array + size;
+	const char* match = std::find(array, end, c);
+	return (end == match) ? -1 : (match - array);
 }
 
 /**
@@ -419,6 +427,42 @@ void TcpThread::putFile(char fileName[200], Msg receiveMsg)
 	return;
 }
 
+void TcpThread::renameFile(char fileName[200], char newFileName[200])
+{
+	Resp responseMsg;
+	int numBytesSent = 0;
+	Msg sendMsg;
+
+	cout << "Client Sent Rename Request: " << fileName << " To " << newFileName;
+	
+	char sourceFile[200] = "";
+	getDataDirectoryPath(sourceFile);
+	strcat(sourceFile, fileName);
+
+	char targerFile[200] = "";
+	getDataDirectoryPath(targerFile);
+	strcat(targerFile, newFileName);
+
+	rename(sourceFile, targerFile);
+	
+	strcpy(responseMsg.response, "File Renamed Successfully");
+	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
+	memcpy(sendMsg.buffer, &responseMsg, sizeof(responseMsg));
+	/* Send the contents of file recursively */
+	if ((numBytesSent = send(serverSocket, sendMsg.buffer, sizeof(responseMsg), 0)) == SOCKET_ERROR)
+	{
+		cout << "Socket Error occured while sending data " << endl;
+		/* Close the connection and unlock the mutex if there is a Socket Error */
+	}
+	cout << "File Renamed to " << newFileName << " successfully"<<endl;
+
+	/* Reset the buffer */
+	memset(sendMsg.buffer, '\0', sizeof(sendMsg.buffer));
+
+	closesocket(serverSocket);
+	return;
+}
+
 int TcpThread::handshake(int seq)
 {
 	Msg sendMsg, receiveMsg;
@@ -500,6 +544,28 @@ void TcpThread::run()
 	{
 		cout << "User " << requestPtr->hostname << " sent a file named " << requestPtr->filename << " to be saved" << endl;
 		putFile(requestPtr->filename, receiveMsg);
+	}
+	else if (receiveMsg.type == REQ_RENAME)
+	{
+		cout << "User " << requestPtr->hostname << " sent request to rename " << requestPtr->filename << endl;
+		char* newFileName = strchr(requestPtr->filename, ' ');
+		char originalFileName[200] = { '\0' };
+		
+		strcpy(originalFileName, requestPtr->filename);
+
+		int i;
+		for (i = 0; requestPtr->filename[i] != ' '; i++)
+		{
+			if (requestPtr->filename[i] == ' ')
+			{
+				break;
+			}
+			cout << requestPtr->filename[i] << endl;
+			originalFileName[i] = requestPtr->filename[i];
+		}
+		originalFileName[i] = '\0';
+		
+		renameFile(originalFileName, newFileName);
 	}
 	else if (receiveMsg.type == HANDSHAKE)
 	{

@@ -89,6 +89,7 @@ public:
 	void sendListOfFiles();
 	void putFile(char[], Msg);
 	int handshake(int);
+	void renameFile(char[], char[]);
 };
 
 #endif
