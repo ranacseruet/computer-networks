@@ -19,6 +19,8 @@ TcpClient::TcpClient()
 {
 	connectionStatus = true;
 }
+
+
 /**
  * Function - run
  * Usage: Based on the user selected option invokes the appropriate function
@@ -91,7 +93,6 @@ void TcpClient::run()
 		cerr<<"Wrong request type";
 		return;
 	}
-
 }
 
 /**
@@ -130,7 +131,6 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 	}
 	/*Return the length of data in bytes, which has been sent out successfully */
 	return (len-MSGHDRSIZE);
-
 }
 
 
@@ -157,7 +157,7 @@ int TcpClient::makeReliable()
 	sendMsg.length = sizeof(sendMsg.buffer);
 	
 	/* Send the packed message */
-	cout << endl << endl << "Sent Handshake Request to " << serverIpAdd <<" with seq#"<<random<< ", Waiting... " << endl;
+	cout << "Sent Handshake Request to " << serverIpAdd <<" with seq# "<<random<< ", Waiting... " << endl;
 
 
 	
@@ -175,8 +175,9 @@ int TcpClient::makeReliable()
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		Req *ptr = (Req *)receiveMsg.buffer;
-		cout << "Server sent sequence#" << ptr->seq << endl;
+		cout << "Server sent sequence# " << ptr->seq << endl;
 		random = random + 2;
+		seq_num = random;
 		reqMessage.seq = random;
 		reqMessage.ack = ptr->seq +1;
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -186,7 +187,7 @@ int TcpClient::makeReliable()
 		sendMsg.length = sizeof(sendMsg.buffer);
 
 		/* Send the packed message */
-		cout << endl << endl << "Sent Final Sequence to " << serverIpAdd << ", Waiting... " << endl;
+		cout << "Client sent Final Sequence to " << serverIpAdd << " with sequence# "<< random << ", Handshake completed. " << endl;
 
 		/* Send the packed message */
 		numBytesSent = msgSend(clientSock, &sendMsg);
@@ -259,7 +260,7 @@ void TcpClient::listOperation()
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
 	
-	cout << endl << endl << "Sent Request to " << serverIpAdd << "With seq#" << reqMessage.seq <<", Waiting... " << endl;
+	cout <<  endl << "Sent List Request to " << serverIpAdd << " With sequence# " << reqMessage.seq <<", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -276,7 +277,7 @@ void TcpClient::listOperation()
 		/* If the file does not exist in the server, close the connection and exit */
 		if (strcmp(receiveMsg.buffer, "No files available") == 0)
 		{
-			cout << receiveMsg.buffer << endl;
+			cout << "No files available" << endl;
 			closesocket(clientSock);
 			return;
 		}
@@ -301,18 +302,20 @@ void TcpClient::listOperation()
 void TcpClient::getOperation()
 { 
 	listOperation();
-	int i = makeReliable();
+	//int i = makeReliable();
 	createConnection();
 
 	sendMsg.type = REQ_GET;
 	cout <<"Type name of file to be retrieved: "<<endl;
 	getline (cin,fileName);
+
+	reqMessage.seq = seq_num;
 	strcpy(reqMessage.filename,fileName.c_str());
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer,&reqMessage,sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length=sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	cout << endl << "Sent GET Request to " << serverIpAdd << " with sequence# "<< seq_num <<", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -407,7 +410,7 @@ void TcpClient::sendFileData(char fName[50])
 	strcat(fullFilePath, fName);
 	
 	cout << endl << "Source File: " << fullFilePath << endl;
-	cout << endl << endl << "Sent Request to " << serverIpAdd << "With seq#" << reqMessage.seq << ", Waiting... " << endl;
+	
 	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		cout << "File not found in the directory " << endl;
@@ -425,7 +428,7 @@ void TcpClient::sendFileData(char fName[50])
 			return;
 		}
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
-		cout << "PUT Req sent. Sending Data"<<endl;
+		cout << endl << "Sent PUT Request to " << serverIpAdd << "With seq#" << reqMessage.seq << ", Waiting... " << endl;
 		fileToRead.open(fullFilePath, ios::in | ios::binary);
 		
 		if (fileToRead.is_open())
@@ -472,6 +475,7 @@ void TcpClient::deleteOperation()
 	createConnection();
 	//int i = makeReliable();
 	sendMsg.type = REQ_DELETE;
+	reqMessage.seq = seq_num;
 	cout << "Type the name of file to be Deleted: " << endl;
 	getline(cin, fileName);
 	strcpy(reqMessage.filename, fileName.c_str());
@@ -479,7 +483,7 @@ void TcpClient::deleteOperation()
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	cout <<  endl << "Sent DELETE Request to " << serverIpAdd << " with sequence# " << seq_num << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -527,12 +531,13 @@ void TcpClient::renameOperation()
 	sendMsg.type = REQ_RENAME;
 	cout << "Type file name to be renamed:    (Format: formFileName_Space_toFileName)" << endl;
 	getline(cin, fileName);
+	reqMessage.seq = seq_num;
 	strcpy(reqMessage.filename, fileName.c_str());
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	cout << endl << endl << "Sent Request to " << serverIpAdd << " with sequence# " << seq_num << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
