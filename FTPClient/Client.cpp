@@ -244,13 +244,13 @@ void TcpClient::createConnection()
 */
 void TcpClient::listOperation()
 {
-	
+	int i = makeReliable();
 	createConnection();
-
-	//int i = makeReliable();
 	sendMsg.type = REQ_LIST;
 	std::string s = "";
 
+	reqMessage.seq = 0;
+	reqMessage.seq = i;
 	strcpy(reqMessage.filename, s.c_str());
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
@@ -258,7 +258,8 @@ void TcpClient::listOperation()
 
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	
+	cout << endl << endl << "Sent Request to " << serverIpAdd << "With seq#" << reqMessage.seq <<", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -355,10 +356,13 @@ void TcpClient::getOperation()
 */
 void TcpClient::putOperation()
 {
+	int i = makeReliable();
 	createConnection();
 
 	//int i = makeReliable();
-	sendMsg.type = REQ_PUT;
+	sendMsg.type = REQ_PUT;\
+	reqMessage.seq = 0;
+	reqMessage.seq = i;
 	cout << "Type name of file to be sent: " << endl;
 	getline(cin, fileName);
 	strcpy(reqMessage.filename, fileName.c_str());
@@ -390,7 +394,7 @@ void TcpClient::sendFileData(char fName[50])
 
 	cCurrentPath[sizeof(cCurrentPath) - 1] = '\0';
 
-	char folderLocation[20] = "\\data\\";
+	char folderLocation[5] = "\\";
 	/* Lock the code section */
 	strcat(cCurrentPath, folderLocation);
 
@@ -402,7 +406,8 @@ void TcpClient::sendFileData(char fName[50])
 	/* Check the file status and pack the response */
 	strcat(fullFilePath, fName);
 	
-	cout << fullFilePath << endl;
+	cout << endl << "Source File: " << fullFilePath << endl;
+	cout << endl << endl << "Sent Request to " << serverIpAdd << "With seq#" << reqMessage.seq << ", Waiting... " << endl;
 	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		cout << "File not found in the directory " << endl;
