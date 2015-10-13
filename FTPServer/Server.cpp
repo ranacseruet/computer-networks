@@ -526,28 +526,28 @@ void TcpThread::run()
 	/* Check the type of operation and Construct the response and send to Client */
 	if (receiveMsg.type == REQ_GET)
 	{
-		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be sent" << endl;
+		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be sent with seq#" << requestPtr->seq << endl;
 		/* Transfer the requested file to Client */
 		sendFileData(requestPtr->filename);
 	}
 	else if (receiveMsg.type == REQ_LIST)
 	{
-		cout << "User " << requestPtr->hostname << " requested for list of files to be sent" << endl;
+		cout << "User " << requestPtr->hostname << " requested for list of files to be sent with seq#" << requestPtr->seq << endl;
 		sendListOfFiles();
 	}
 	else if (receiveMsg.type == REQ_DELETE)
 	{
-		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be deleted" << endl;
+		cout << "User " << requestPtr->hostname << " requested file " << requestPtr->filename << " to be deleted with seq#" << requestPtr->seq << endl;
 		deleteFile(requestPtr->filename);
 	}
 	else if (receiveMsg.type == REQ_PUT)
 	{
-		cout << "User " << requestPtr->hostname << " sent a file named " << requestPtr->filename << " to be saved" << endl;
+		cout << "User " << requestPtr->hostname << " sent a file named " << requestPtr->filename << " to be saved with seq#" << requestPtr->seq << endl;
 		putFile(requestPtr->filename, receiveMsg);
 	}
 	else if (receiveMsg.type == REQ_RENAME)
 	{
-		cout << "User " << requestPtr->hostname << " sent request to rename " << requestPtr->filename << endl;
+		cout << "User " << requestPtr->hostname << " sent request to rename " << requestPtr->filename << " with seq#" << requestPtr->seq << endl;
 		char* newFileName = strchr(requestPtr->filename, ' ');
 		char originalFileName[200] = { '\0' };
 		
