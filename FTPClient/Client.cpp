@@ -19,6 +19,8 @@ TcpClient::TcpClient()
 {
 	connectionStatus = true;
 }
+
+
 /**
  * Function - run
  * Usage: Based on the user selected option invokes the appropriate function
@@ -91,7 +93,6 @@ void TcpClient::run()
 		cerr<<"Wrong request type";
 		return;
 	}
-
 }
 
 /**
@@ -130,7 +131,6 @@ int TcpClient::msgSend(int clientSocket,Msg * msg_ptr)
 	}
 	/*Return the length of data in bytes, which has been sent out successfully */
 	return (len-MSGHDRSIZE);
-
 }
 
 
@@ -157,7 +157,7 @@ int TcpClient::makeReliable()
 	sendMsg.length = sizeof(sendMsg.buffer);
 	
 	/* Send the packed message */
-	cout << endl << endl << "Sent Handshake Request to " << serverIpAdd <<" with seq#"<<random<< ", Waiting... " << endl;
+	cout << "Sent Handshake Request to " << serverIpAdd <<" with seq# "<<random<< ", Waiting... " << endl;
 
 
 	
@@ -175,7 +175,7 @@ int TcpClient::makeReliable()
 	while ((numBytesRecv = recv(clientSock, receiveMsg.buffer, BUFFER_LENGTH, 0))>0)
 	{
 		Req *ptr = (Req *)receiveMsg.buffer;
-		cout << "Server sent sequence#" << ptr->seq << endl;
+		cout << "Server sent sequence# " << ptr->seq << endl;
 		random = random + 2;
 		reqMessage.seq = random;
 		reqMessage.ack = ptr->seq +1;
@@ -186,7 +186,7 @@ int TcpClient::makeReliable()
 		sendMsg.length = sizeof(sendMsg.buffer);
 
 		/* Send the packed message */
-		cout << endl << endl << "Sent Final Sequence to " << serverIpAdd << ", Waiting... " << endl;
+		cout << "Client sent Final Sequence to " << serverIpAdd << " with sequence# "<< random << ", Handshake completed. " << endl;
 
 		/* Send the packed message */
 		numBytesSent = msgSend(clientSock, &sendMsg);
@@ -259,7 +259,7 @@ void TcpClient::listOperation()
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
 	
-	cout << endl << endl << "Sent Request to " << serverIpAdd << "With seq#" << reqMessage.seq <<", Waiting... " << endl;
+	cout <<  endl << "Sent List Request to " << serverIpAdd << " With sequence# " << reqMessage.seq <<", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -301,7 +301,7 @@ void TcpClient::listOperation()
 void TcpClient::getOperation()
 { 
 	listOperation();
-	int i = makeReliable();
+	//int i = makeReliable();
 	createConnection();
 
 	sendMsg.type = REQ_GET;
@@ -312,7 +312,7 @@ void TcpClient::getOperation()
 	memcpy(sendMsg.buffer,&reqMessage,sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length=sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	cout << endl << "Sent GET Request to " << serverIpAdd << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -407,7 +407,7 @@ void TcpClient::sendFileData(char fName[50])
 	strcat(fullFilePath, fName);
 	
 	cout << endl << "Source File: " << fullFilePath << endl;
-	cout << endl << endl << "Sent Request to " << serverIpAdd << "With seq#" << reqMessage.seq << ", Waiting... " << endl;
+	
 	if ((result = _stat(fullFilePath, &stat_buf)) != 0)
 	{
 		cout << "File not found in the directory " << endl;
@@ -425,7 +425,7 @@ void TcpClient::sendFileData(char fName[50])
 			return;
 		}
 		memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
-		cout << "PUT Req sent. Sending Data"<<endl;
+		cout << endl << "Sent PUT Request to " << serverIpAdd << "With seq#" << reqMessage.seq << ", Waiting... " << endl;
 		fileToRead.open(fullFilePath, ios::in | ios::binary);
 		
 		if (fileToRead.is_open())
@@ -479,7 +479,7 @@ void TcpClient::deleteOperation()
 	memcpy(sendMsg.buffer, &reqMessage, sizeof(reqMessage));
 	/* Include the length of the buffer */
 	sendMsg.length = sizeof(sendMsg.buffer);
-	cout << endl << endl << "Sent Request to " << serverIpAdd << ", Waiting... " << endl;
+	cout <<  endl << "Sent DELETE Request to " << serverIpAdd << ", Waiting... " << endl;
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
