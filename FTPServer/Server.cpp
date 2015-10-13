@@ -19,6 +19,7 @@
 
 #include "Thread.h"
 #include "server.h"
+#include <fstream>
 
 using namespace std;
 
@@ -35,6 +36,7 @@ std::wstring s2ws(const std::string& s)
 	return r;
 }
 //--------------------
+
 
 void getListOfFiles(char files[10000])
 {

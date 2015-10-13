@@ -9,6 +9,13 @@
 
 using namespace std;
 
+//logger
+void write_log(const std::string &text)
+{
+	std::ofstream log_file("cleint_log.txt", std::ios_base::out | std::ios_base::app);
+	log_file << text;
+}
+
 /**
  * Constructor - TcpClient
  * Usage: Initialize the connection status 
@@ -261,6 +268,7 @@ void TcpClient::listOperation()
 	sendMsg.length = sizeof(sendMsg.buffer);
 	
 	cout <<  endl << "Sent List Request to " << serverIpAdd << " With sequence# " << reqMessage.seq <<", Waiting... " << endl;
+	write_log("Sent Request.");
 	/* Send the packed message */
 	numBytesSent = msgSend(clientSock, &sendMsg);
 	memset(sendMsg.buffer, '\0', BUFFER_LENGTH);
@@ -683,11 +691,6 @@ TcpClient::~TcpClient()
  */
 int main(int argc, char *argv[])
 {
-	//Enable when log to file
-	ofstream out("client_log.txt");
-	streambuf *coutbuf = std::cout.rdbuf(); //save old buf
-	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
-
 	TcpClient * tc=new TcpClient();
 	tc->startClient();
 	while(1)
