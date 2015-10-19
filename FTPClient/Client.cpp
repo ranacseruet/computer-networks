@@ -5,6 +5,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Client.h"
 #include <direct.h>
+#include <fstream>
 #define GetCurrentDir _getcwd
 
 using namespace std;
