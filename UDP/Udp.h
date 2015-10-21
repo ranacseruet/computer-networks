@@ -46,3 +46,20 @@ typedef struct
 	char conetent[BUFFER_LENGTH];
 }Data;
 
+/* TcpServer Class */
+class UDP
+{
+private:
+	int socket;				/* Socket descriptor for server and client*/
+
+public:
+	UDP(int);
+	~UDP();
+	bool SendRequest(Request req);
+	bool SendDatat(Data data);
+	bool SendResponse(Response data);
+
+	Request RecieveRequest();
+	Data RecieveData();
+	Response RecieveResponse();
+};
