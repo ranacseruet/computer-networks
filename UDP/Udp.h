@@ -57,7 +57,7 @@ private:
 	int port;
 
 public:
-	UDPClient(int);
+	UDPClient();
 	~UDPClient();
 	bool SendRequest(Request req);
 	bool SendDatat(Data data);
