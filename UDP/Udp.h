@@ -1,4 +1,5 @@
-#pragma once
+#pragma comment(lib, "Ws2_32.lib")
+
 #define HOSTNAME_LENGTH 20
 #define RESP_LENGTH 40
 #define FILENAME_LENGTH 20
@@ -47,19 +48,35 @@ typedef struct
 }Data;
 
 /* TcpServer Class */
-class UDP
+class UDPClient
 {
 private:
 	int socket;				/* Socket descriptor for server and client*/
+	int port;
 
 public:
-	UDP(int);
-	~UDP();
+	UDPClient(int);
+	~UDPClient();
 	bool SendRequest(Request req);
+	bool SendDatat(Data data);
+
+	Data RecieveData();
+	Response RecieveResponse();
+};
+
+class UDPServer
+{
+private:
+	int socket;				/* Socket descriptor for server and client*/
+	int port;
+
+public:
+	UDPServer(int);
+	~UDPServer();
+
 	bool SendDatat(Data data);
 	bool SendResponse(Response data);
 
-	Request RecieveRequest();
+	Request* RecieveRequest();
 	Data RecieveData();
-	Response RecieveResponse();
 };
