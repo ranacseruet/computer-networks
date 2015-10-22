@@ -61,6 +61,8 @@ public:
 	bool SendRequest(Request *);
 	bool SendDatat(Data data);
 
+	void run(void);
+
 	Data RecieveData();
 	Response RecieveResponse();
 };

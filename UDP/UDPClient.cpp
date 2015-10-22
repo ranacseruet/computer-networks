@@ -7,6 +7,19 @@
 #include <iostream>
 #include <string>
 
+unsigned long getAddressByHost()
+{
+	struct hostent *host;            /* Structure containing host information */
+
+	if ((host = gethostbyname("valo-virus")) == NULL)
+	{
+		return(1);
+	}
+
+	/* Return the binary, network byte ordered address */
+	return *((unsigned long *)host->h_addr_list[0]);
+}
+
 UDPClient::UDPClient()
 {
 	WSADATA WsaData;
@@ -17,6 +30,8 @@ UDPClient::~UDPClient()
 {
 	WSACleanup();
 }
+
+
 
 bool UDPClient::SendRequest(Request * req)
 {
@@ -29,9 +44,14 @@ bool UDPClient::SendRequest(Request * req)
 	}
 
 	sockaddr_in address;
+	int ServPort = 5001;
+	memset(&address, 0, sizeof(address));     /* Zero out structure */
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons((unsigned short)port);
+	address.sin_addr.s_addr = getAddressByHost();
+	address.sin_port = htons(ServPort);
+	
+
+
 
 	if (bind(handle, (const sockaddr*)&address, sizeof(sockaddr_in)) < 0)
 	{
@@ -57,3 +77,21 @@ bool UDPClient::SendDatat(Data data)
 {
 	return true;
 };
+
+
+void UDPClient::run()
+{
+	
+	Request* req;
+	req->type = 1;
+	UDPClient::SendRequest(req);
+		
+	
+}
+
+int main(void)
+{
+	UDPClient* client = new UDPClient();
+	client->run();
+	return 0;
+}
