@@ -53,13 +53,12 @@ typedef struct
 class UDPClient
 {
 private:
-	int socket;				/* Socket descriptor for server and client*/
 	int port;
 
 public:
 	UDPClient();
 	~UDPClient();
-	bool SendRequest(Request req);
+	bool SendRequest(Request *);
 	bool SendDatat(Data data);
 
 	Data RecieveData();
