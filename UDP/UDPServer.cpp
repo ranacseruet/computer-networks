@@ -79,6 +79,7 @@ Request* UDPServer::RecieveRequest()
 	Request* req;
 	while (true)
 	{
+		
 		unsigned char packet_data[256];
 
 		memset(packet_data, '\0', sizeof(packet_data));
@@ -105,17 +106,21 @@ Request* UDPServer::RecieveRequest()
 
 		unsigned int from_port =
 			ntohs(from.sin_port);
-		if (packet_data[0] != NULL)
-		{
+		//if (packet_data[0] != NULL)
+		//{
 			req = (Request *)packet_data;
-			break;
-		}
+			//break;
+			cout << packet_data;
+		//}
 	}
 	return req;
 }
 
 int main(void)
 {
+	UDPClient* client = new UDPClient();
+	client->run();
+
 	UDPServer* server = new UDPServer(0);
 	server->run();
 	int i;

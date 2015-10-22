@@ -11,7 +11,7 @@ unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
 
-	if ((host = gethostbyname("valo-virus")) == NULL)
+	if ((host = gethostbyname("MDALIRANAEDAF")) == NULL)
 	{
 		return(1);
 	}
@@ -49,11 +49,14 @@ bool UDPClient::SendRequest(Request * req)
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = getAddressByHost();
 	address.sin_port = htons(ServPort);
+
+	sockaddr_in myaddress;
+	myaddress.sin_family = AF_INET;
+	myaddress.sin_addr.s_addr = INADDR_ANY;
+	myaddress.sin_port = htons((unsigned short)0);
 	
 
-
-
-	if (bind(handle, (const sockaddr*)&address, sizeof(sockaddr_in)) < 0)
+	if (bind(handle, (const sockaddr*)&myaddress, sizeof(sockaddr_in)) < 0)
 	{
 		printf("failed to bind socket\n");
 		return false;
@@ -67,7 +70,7 @@ bool UDPClient::SendRequest(Request * req)
 		return false;
 	}
 
-
+	closesocket(handle);
 
 	return true;
 };
@@ -82,16 +85,17 @@ bool UDPClient::SendDatat(Data data)
 void UDPClient::run()
 {
 	
-	Request* req;
-	req->type = 1;
-	UDPClient::SendRequest(req);
+	Request req;
+	memset(&req, '\0', sizeof(req));
+	req.type = 1;
+	UDPClient::SendRequest(&req);
 		
 	
 }
 
-int main(void)
+/*int main(void)
 {
 	UDPClient* client = new UDPClient();
 	client->run();
 	return 0;
-}
+}*/

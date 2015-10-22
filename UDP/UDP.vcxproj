@@ -72,6 +72,7 @@
     <ClInclude Include="Udp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="UDPClient.cpp" />
     <ClCompile Include="UDPServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
