@@ -1,9 +1,11 @@
 #pragma comment(lib, "Ws2_32.lib")
 
+#include <winsock.h>
+
 #define HOSTNAME_LENGTH 20
 #define RESP_LENGTH 40
 #define FILENAME_LENGTH 20
-#define REQUEST_PORT 5001
+#define SERVER_PORT 5001
 #define BUFFER_LENGTH 256
 #define MAXPENDING 10
 #define MSGHDRSIZE 8
@@ -67,12 +69,14 @@ public:
 class UDPServer
 {
 private:
-	int socket;				/* Socket descriptor for server and client*/
-	int port;
-
+	int port, serverSocket;
+	char serverName[HOSTNAME_LENGTH];
+	struct sockaddr_in serverAddr;
 public:
 	UDPServer(int);
-	~UDPServer();
+	~UDPServer(void);
+
+	void run(void);
 
 	bool SendDatat(Data data);
 	bool SendResponse(Response data);
