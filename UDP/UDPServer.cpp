@@ -76,6 +76,7 @@ UDPServer::~UDPServer()
 
 Request* UDPServer::RecieveRequest()
 {
+	Request* req;
 	while (true)
 	{
 		unsigned char packet_data[256];
@@ -104,17 +105,13 @@ Request* UDPServer::RecieveRequest()
 
 		unsigned int from_port =
 			ntohs(from.sin_port);
-		if (packet_data[0] == NULL)
+		if (packet_data[0] != NULL)
 		{
-			cout << "null data recieved" << endl;
-		}
-		else
-		{
-			Request* req;
 			req = (Request *)packet_data;
-			return req;
+			break;
 		}
 	}
+	return req;
 }
 
 int main(void)
