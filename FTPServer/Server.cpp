@@ -594,12 +594,12 @@ int main(void)
 	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
 	*/
 
-	TcpServer ts;
+	/*TcpServer ts;
 	// Start the server and start listening to requests
-	ts.start();
+	ts.start();*/
 
-	/*UDPServer *server = new UDPServer(0);
-	server->run();*/
+	UDPServer *server = new UDPServer(0);
+	server->run();
 
 	return 0;
 }

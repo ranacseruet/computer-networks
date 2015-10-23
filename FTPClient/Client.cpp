@@ -706,14 +706,14 @@ unsigned long getAddressByHost(char hostName[])
  */
 int main(int argc, char *argv[])
 {
-	TcpClient * tc=new TcpClient();
+	/*TcpClient * tc=new TcpClient();
 	tc->startClient();
 	while(1)
 	{
 		tc->showMenu();
-	}
+	}*/
 
-	/*Request request;
+	Request request;
 	memset(&request, '\0', sizeof(request));
 	request.type = 2;
 	UDPClient *client = new UDPClient();
@@ -727,6 +727,6 @@ int main(int argc, char *argv[])
 		cout << "Request sending error";
 	}
 	int i;
-	cin >> i;*/
+	cin >> i;
 	return 0;
 }

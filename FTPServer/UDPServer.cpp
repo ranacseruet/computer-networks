@@ -11,39 +11,39 @@ using namespace std;
 UDPServer::UDPServer(int port)
 {
 
-	WSADATA wsadata;
-	/* Initialize Windows Socket information */
+	/*WSADATA wsadata;
+	// Initialize Windows Socket information 
 	if (WSAStartup(0x0202, &wsadata) != 0)
 	{
 		cerr << "Starting WSAStartup() error\n" << endl;
 		exit(1);
 	}
 
-	/* Display the name of the host */
+	// Display the name of the host
 	if (gethostname(serverName, HOSTNAME_LENGTH) != 0)
 	{
 		cerr << "Get the host name error,exit" << endl;
 		exit(1);
 	}
 
-	/* Socket Creation */
+	// Socket Creation
 	if ((serverSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
 	{
 		cerr << "Socket Creation Error,exit" << endl;
 		exit(1);
 	}
 
-	/* Fill-in Server Port and Address information */
+	// Fill-in Server Port and Address information
 	//Can be removed if proper port provided
 	port = SERVER_PORT;
 	
 	
-	memset(&serverAddr, 0, sizeof(serverAddr));      /* Zero out structure */
-	serverAddr.sin_family = AF_INET;                 /* Internet address family */
-	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);  /* Any incoming interface */
-	serverAddr.sin_port = htons(port);				/* Local port */
+	memset(&serverAddr, 0, sizeof(serverAddr));      // Zero out structure /
+	serverAddr.sin_family = AF_INET;                 // Internet address family /
+	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);  // Any incoming interface /
+	serverAddr.sin_port = htons(port);				// Local port /
 
-	/* Binding the server socket to the Port Number */
+	// Binding the server socket to the Port Number
 	if (::bind(serverSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0)
 	{
 		cerr << "Socket Binding Error,exit" << endl;
@@ -57,7 +57,7 @@ UDPServer::UDPServer(int port)
 		exit(1);
 	}
 
-	cout << "Server: " << serverName << " listening on port " << port << " ..." << endl;
+	cout << "Server: " << serverName << " listening on port " << port << " ..." << endl;*/
 }
 
 void UDPServer::run()
@@ -66,7 +66,7 @@ void UDPServer::run()
 	{
 		//TODO
 		Request* req = RecieveRequest();
-		cout << req->type <<endl;
+		//cout << req->type <<endl;
 	}
 }
 
@@ -137,11 +137,11 @@ Request* UDPServer::RecieveRequest()
 		printf("Data: %s\n", buf);
 
 		//now reply the client with the same data
-		if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
+		/*if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
 		{
 			printf("sendto() failed with error code : %d", WSAGetLastError());
 			break;
-		}
+		}*/
 	}
 
 	closesocket(s);
