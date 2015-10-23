@@ -4,8 +4,6 @@
 
 #include <windows.h>
 
-#define BUFLEN 100
-
 using namespace std;
 
 UDPServer::UDPServer(int port)
@@ -77,12 +75,13 @@ UDPServer::~UDPServer()
 
 Request* UDPServer::RecieveRequest()
 {
-	Request* req;
+	Request req;
+	memset(&req, '\0', sizeof(Request));
 
 	SOCKET s;
 	struct sockaddr_in server, si_other;
 	int slen, recv_len;
-	char buf[BUFLEN];
+	char buf[BUFFER_LENGTH];
 	WSADATA wsa;
 
 	slen = sizeof(si_other);
@@ -123,10 +122,10 @@ Request* UDPServer::RecieveRequest()
 		fflush(stdout);
 
 		//clear the buffer by filling null, it might have previously received data
-		memset(buf, '\0', BUFLEN);
+		memset(buf, '\0', sizeof(Request));
 
 		//try to receive some data, this is a blocking call
-		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
+		if ((recv_len = recvfrom(s, (char *)&req, BUFFER_LENGTH, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			break;
@@ -134,8 +133,8 @@ Request* UDPServer::RecieveRequest()
 
 		//print details of the client/peer and the data received
 		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-		printf("Data: %s\n", buf);
-
+		printf("Data: %s %d\n", buf, sizeof(Request));
+		//req = (Request *)buf;
 		//now reply the client with the same data
 		/*if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
 		{
@@ -146,7 +145,7 @@ Request* UDPServer::RecieveRequest()
 
 	closesocket(s);
 	WSACleanup();
-	return req;
+	return &req;
 }
 
 /*int main(void)

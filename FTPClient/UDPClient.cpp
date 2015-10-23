@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+char buffer[CONTAINER_LENGTH];
+
 unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
@@ -60,7 +62,13 @@ bool UDPClient::SendRequest(Request * req)
 		printf("failed to bind socket\n");
 		return false;
 	}
-	char buffer[100] = "Hello World";
+
+	printf("Size: %d", sizeof(req->filename));
+	memset(buffer, '\0', BUFFER_LENGTH);
+	memcpy(buffer, &req, sizeof(req));
+	printf(buffer);
+
+	printf("Size: %d" , sizeof(buffer));
 	int sent_bytes = sendto(handle, (const char*)buffer, sizeof(buffer), 0, (sockaddr*)&address, sizeof(sockaddr_in));
 
 	if (sent_bytes != sizeof(buffer))
@@ -70,7 +78,6 @@ bool UDPClient::SendRequest(Request * req)
 	}
 
 	closesocket(handle);
-
 	return true;
 };
 

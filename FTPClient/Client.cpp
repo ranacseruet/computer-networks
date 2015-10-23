@@ -711,10 +711,15 @@ int main(int argc, char *argv[])
 	while(1)
 	{
 		tc->showMenu();
-	}*/
+	}
+	*/
 
 	Request request;
 	memset(&request, '\0', sizeof(request));
+
+	std::string s = "Hello hello helllo heollo";
+	strcpy(request.filename, s.c_str());
+	
 	request.type = 2;
 	UDPClient *client = new UDPClient();
 
