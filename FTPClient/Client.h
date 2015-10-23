@@ -13,6 +13,8 @@
 #include <windows.h>
 #include <sys/stat.h>
 
+#include "Common.h"
+
 using namespace std;
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -25,7 +27,7 @@ using namespace std;
 #define RESP_LENGTH 40
 
 /* Types of Messages */
-typedef enum
+/*typedef enum
 {
 	REQ_LIST	= 1,
 	REQ_GET		= 2,
@@ -33,7 +35,7 @@ typedef enum
 	REQ_DELETE	= 4,
 	HANDSHAKE	= 5,
 	REQ_RENAME  = 6,
-} Type;
+} Type;*/
 
 typedef struct
 {
@@ -67,6 +69,24 @@ typedef struct
 	char buffer[BUFFER_LENGTH];
 	char dataBuffer[BUFFER_LENGTH];
 } Msg; 
+
+/* TcpServer Class */
+class UDPClient
+{
+private:
+	int port;
+
+public:
+	UDPClient();
+	~UDPClient();
+	bool SendRequest(Request *);
+	bool SendDatat(Data data);
+
+	void run(void);
+
+	Data RecieveData();
+	Response RecieveResponse();
+};
 
 /* TcpClient Class */
 class TcpClient

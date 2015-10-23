@@ -15,8 +15,11 @@
 #define MSGHDRSIZE 8
 #define ACK_LENGHT 3
 
+#include "../FTPClient/Common.h"
+#include "Thread.h"
+
 /* Types of Messages */
-typedef enum
+/*typedef enum
 {
 	REQ_LIST	= 1,
 	REQ_GET		= 2,
@@ -24,7 +27,7 @@ typedef enum
 	REQ_DELETE	= 4,
 	HANDSHAKE	= 5,
 	REQ_RENAME  = 6,
-} Type;
+} Type;*/
 
 typedef struct
 {
@@ -54,6 +57,25 @@ typedef struct
 	int  length;
 	char buffer[BUFFER_LENGTH];
 } Msg;
+
+class UDPServer
+{
+private:
+	int port, serverSocket;
+	char serverName[HOSTNAME_LENGTH];
+	struct sockaddr_in serverAddr;
+public:
+	UDPServer(int);
+	~UDPServer(void);
+
+	void run(void);
+
+	bool SendDatat(Data data);
+	bool SendResponse(Response data);
+
+	Request* RecieveRequest();
+	Data RecieveData();
+};
 
 /* TcpServer Class */
 class TcpServer

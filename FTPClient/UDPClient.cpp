@@ -1,8 +1,7 @@
-#include "Udp.h"
 #include <windows.h>
 #include <sys/types.h>
 
-
+#include "Client.h"
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -61,10 +60,10 @@ bool UDPClient::SendRequest(Request * req)
 		printf("failed to bind socket\n");
 		return false;
 	}
+	char buffer[100] = "Hello World";
+	int sent_bytes = sendto(handle, (const char*)buffer, sizeof(buffer), 0, (sockaddr*)&address, sizeof(sockaddr_in));
 
-	int sent_bytes = sendto(handle, (const char*)req , sizeof(req),0,(sockaddr*)&address, sizeof(sockaddr_in));
-
-	if (sent_bytes != sizeof(req))
+	if (sent_bytes != sizeof(buffer))
 	{
 		printf("failed to send packet\n");
 		return false;

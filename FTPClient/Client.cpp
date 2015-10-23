@@ -6,6 +6,7 @@
 #include "Client.h"
 #include <direct.h>
 #include <fstream>
+
 #define GetCurrentDir _getcwd
 
 using namespace std;
@@ -38,7 +39,7 @@ TcpClient::TcpClient()
 void TcpClient::run()
 {	
 	/* Socket Creation */
-	if ((clientSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) 
+	if ((clientSock = socket(PF_INET, SOCK_STREAM, 0)) < 0) 
 	{
 		cerr<<"Socket Creation Error";
 		connectionStatus = false;
@@ -221,7 +222,7 @@ int TcpClient::makeReliable()
 void TcpClient::createConnection()
 {
 	/* Socket creation */
-	if ((clientSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) //create the socket
+	if ((clientSock = socket(PF_INET, SOCK_STREAM, 0)) < 0) //create the socket
 	{
 		cerr << "Socket Creation Error";
 		return;
@@ -684,6 +685,19 @@ TcpClient::~TcpClient()
 	WSACleanup();
 }
 
+unsigned long getAddressByHost(char hostName[])
+{
+	struct hostent *host;            // Structure containing host information
+
+	if ((host = gethostbyname(hostName)) == NULL)
+	{
+		return(1);
+	}
+
+	// Return the binary, network byte ordered address
+	return *((unsigned long *)host->h_addr_list[0]);
+}
+
 /**
  * Function - main
  * Usage: Initiates the Client
@@ -698,6 +712,21 @@ int main(int argc, char *argv[])
 	{
 		tc->showMenu();
 	}
-		
+
+	/*Request request;
+	memset(&request, '\0', sizeof(request));
+	request.type = 2;
+	UDPClient *client = new UDPClient();
+
+	if (client->SendRequest(&request))
+	{
+		cout << "Request Sent Successfully";
+	}
+	else
+	{
+		cout << "Request sending error";
+	}
+	int i;
+	cin >> i;*/
 	return 0;
 }

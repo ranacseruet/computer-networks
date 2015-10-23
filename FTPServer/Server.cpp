@@ -589,12 +589,17 @@ void TcpThread::run()
 int main(void)
 {
 	//Enable when log to file
-	ofstream out("data\\server_log.txt");
+	/*ofstream out("data\\server_log.txt");
 	streambuf *coutbuf = std::cout.rdbuf(); //save old buf
 	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+	*/
 
 	TcpServer ts;
-	/* Start the server and start listening to requests */
+	// Start the server and start listening to requests
 	ts.start();
+
+	/*UDPServer *server = new UDPServer(0);
+	server->run();*/
+
 	return 0;
 }
