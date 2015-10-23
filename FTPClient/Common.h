@@ -7,6 +7,7 @@
 #define FILENAME_LENGTH 20
 #define SERVER_PORT 5001
 #define BUFFER_LENGTH 256
+#define CONTAINER_LENGTH 350
 #define MAXPENDING 10
 #define MSGHDRSIZE 8
 #define ACK_LENGHT 3
@@ -48,3 +49,5 @@ typedef struct
 	Handshake handshake;
 	char conetent[BUFFER_LENGTH];
 }Data;
+
+
