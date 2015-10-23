@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-char buffer[CONTAINER_LENGTH];
+char buffer[BUFFER_LENGTH];
 
 unsigned long getAddressByHost()
 {

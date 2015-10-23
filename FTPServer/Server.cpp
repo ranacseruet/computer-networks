@@ -600,6 +600,7 @@ int main(void)
 
 	UDPServer *server = new UDPServer(0);
 	server->run();
-
+	int i;
+	cin >> i;
 	return 0;
 }

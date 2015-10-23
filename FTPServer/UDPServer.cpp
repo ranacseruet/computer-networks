@@ -123,17 +123,18 @@ Request* UDPServer::RecieveRequest()
 
 		//clear the buffer by filling null, it might have previously received data
 		memset(buf, '\0', sizeof(Request));
-
+		char buffer[BUFFER_LENGTH];
+		memset(buffer, '\0', BUFFER_LENGTH);
 		//try to receive some data, this is a blocking call
 		if ((recv_len = recvfrom(s, (char *)&req, BUFFER_LENGTH, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			break;
 		}
-
+		//req = (Request *)buffer;
 		//print details of the client/peer and the data received
 		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-		printf("Data: %s %d\n", buf, sizeof(Request));
+		printf("Data: %s %d\n", req.filename, sizeof(buffer));
 		//req = (Request *)buf;
 		//now reply the client with the same data
 		/*if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)

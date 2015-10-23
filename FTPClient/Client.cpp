@@ -717,7 +717,7 @@ int main(int argc, char *argv[])
 	Request request;
 	memset(&request, '\0', sizeof(request));
 
-	std::string s = "Hello hello helllo heollo";
+	std::string s = "Hello hello";
 	strcpy(request.filename, s.c_str());
 	
 	request.type = 2;
