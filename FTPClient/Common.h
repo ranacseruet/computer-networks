@@ -30,10 +30,7 @@ typedef struct
 
 typedef struct
 {
-	Handshake handshake;
-	int type;
 	char filename[FILENAME_LENGTH];
-	char renamedFileName[FILENAME_LENGTH];
 }Request;
 
 typedef struct
@@ -49,4 +46,8 @@ typedef struct
 	char conetent[BUFFER_LENGTH];
 }Data;
 
+typedef struct
+{
+	char buffer[BUFFER_LENGTH];
+}Container;
 

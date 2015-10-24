@@ -597,9 +597,9 @@ int main(void)
 	/*TcpServer ts;
 	// Start the server and start listening to requests
 	ts.start();*/
-
+	Request req;
 	UDPServer *server = new UDPServer(0);
-	server->run();
+	server->RecieveRequest(&req);
 	int i;
 	cin >> i;
 	return 0;

@@ -79,7 +79,7 @@ private:
 public:
 	UDPClient();
 	~UDPClient();
-	bool SendRequest(Request *);
+	bool SendRequest(Request);
 	bool SendDatat(Data data);
 
 	void run(void);

@@ -73,7 +73,7 @@ public:
 	bool SendDatat(Data data);
 	bool SendResponse(Response data);
 
-	Request* RecieveRequest();
+	void RecieveRequest(Request*);
 	Data RecieveData();
 };
 

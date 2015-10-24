@@ -720,10 +720,10 @@ int main(int argc, char *argv[])
 	std::string s = "Hello hello";
 	strcpy(request.filename, s.c_str());
 	
-	request.type = 2;
+	//request.type = 2;
 	UDPClient *client = new UDPClient();
 
-	if (client->SendRequest(&request))
+	if (client->SendRequest(request))
 	{
 		cout << "Request Sent Successfully";
 	}

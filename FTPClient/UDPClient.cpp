@@ -6,8 +6,6 @@
 #include <iostream>
 #include <string>
 
-char buffer[BUFFER_LENGTH];
-
 unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
@@ -34,7 +32,7 @@ UDPClient::~UDPClient()
 
 
 
-bool UDPClient::SendRequest(Request * req)
+bool UDPClient::SendRequest(Request req)
 {
 	int handle = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -62,18 +60,24 @@ bool UDPClient::SendRequest(Request * req)
 		printf("failed to bind socket\n");
 		return false;
 	}
+	
+	char buffer[BUFFER_LENGTH];
+	Container container;
+	memset(container.buffer, '\0', BUFFER_LENGTH);
+	memcpy(container.buffer, &req, sizeof(req));
 
-	printf("Size: %d", sizeof(req->filename));
+	printf("Size: %d", sizeof(req));
 	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &req, sizeof(req));
-	printf(buffer);
+	printf("%s", buffer);
+	printf(req.filename);
 
 	printf("Size: %d" , sizeof(buffer));
-	int sent_bytes = sendto(handle, (const char*)buffer, sizeof(buffer), 0, (sockaddr*)&address, sizeof(sockaddr_in));
+	int sent_bytes = sendto(handle, (char *)buffer, sizeof(req), 0, (sockaddr*)&address, sizeof(sockaddr_in));
 
-	if (sent_bytes != sizeof(buffer))
+	if (sent_bytes != sizeof(req))
 	{
-		printf("failed to send packet\n");
+		printf("failed to send packet. Sent bytes %d\n", sent_bytes);
 		return false;
 	}
 
@@ -93,8 +97,8 @@ void UDPClient::run()
 	
 	Request req;
 	memset(&req, '\0', sizeof(req));
-	req.type = 1;
-	UDPClient::SendRequest(&req);
+	//req.type = 1;
+	UDPClient::SendRequest(req);
 		
 	
 }
