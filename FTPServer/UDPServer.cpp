@@ -8,83 +8,6 @@ using namespace std;
 
 UDPServer::UDPServer(int port)
 {
-
-	/*WSADATA wsadata;
-	// Initialize Windows Socket information 
-	if (WSAStartup(0x0202, &wsadata) != 0)
-	{
-		cerr << "Starting WSAStartup() error\n" << endl;
-		exit(1);
-	}
-
-	// Display the name of the host
-	if (gethostname(serverName, HOSTNAME_LENGTH) != 0)
-	{
-		cerr << "Get the host name error,exit" << endl;
-		exit(1);
-	}
-
-	// Socket Creation
-	if ((serverSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-	{
-		cerr << "Socket Creation Error,exit" << endl;
-		exit(1);
-	}
-
-	// Fill-in Server Port and Address information
-	//Can be removed if proper port provided
-	port = SERVER_PORT;
-	
-	
-	memset(&serverAddr, 0, sizeof(serverAddr));      // Zero out structure /
-	serverAddr.sin_family = AF_INET;                 // Internet address family /
-	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);  // Any incoming interface /
-	serverAddr.sin_port = htons(port);				// Local port /
-
-	// Binding the server socket to the Port Number
-	if (::bind(serverSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0)
-	{
-		cerr << "Socket Binding Error,exit" << endl;
-		exit(1);
-	}
-
-	//Successfull bind, now listen for Server requests.
-	if (listen(serverSocket, MAXPENDING) < 0)
-	{
-		cerr << "Socket Listening Error,exit" << endl;
-		exit(1);
-	}
-
-	cout << "Server: " << serverName << " listening on port " << port << " ..." << endl;*/
-}
-
-void UDPServer::run()
-{
-	//for (;;) /* Run forever */
-	{
-		//TODO
-		//Request* req = RecieveRequest();
-		//cout << req->type <<endl;
-	}
-}
-
-UDPServer::~UDPServer()
-{
-	WSACleanup();
-}
-
-void UDPServer::RecieveRequest(Request *req)
-{
-	//memset(req, '\0', sizeof(Request));
-
-	SOCKET s;
-	struct sockaddr_in server, si_other;
-	int slen, recv_len;
-	char buf[BUFFER_LENGTH];
-	WSADATA wsa;
-
-	slen = sizeof(si_other);
-
 	//Initialise winsock
 	printf("\nInitialising Winsock...");
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -112,7 +35,29 @@ void UDPServer::RecieveRequest(Request *req)
 		printf("Bind failed with error code : %d", WSAGetLastError());
 		exit(EXIT_FAILURE);
 	}
-	puts("Bind done");
+}
+
+void UDPServer::run()
+{
+	//for (;;) /* Run forever */
+	{
+		//TODO
+		//Request* req = RecieveRequest();
+		//cout << req->type <<endl;
+	}
+}
+
+UDPServer::~UDPServer()
+{
+	closesocket(s);
+	WSACleanup();
+}
+
+void UDPServer::RecieveRequest(Request *req)
+{
+	int slen, recv_len;
+
+	slen = sizeof(si_other);
 
 	//keep listening for data
 	while (1)
@@ -121,7 +66,6 @@ void UDPServer::RecieveRequest(Request *req)
 		fflush(stdout);
 
 		//clear the buffer by filling null, it might have previously received data
-		memset(buf, '\0', sizeof(Request));
 		char buffer[BUFFER_LENGTH];
 		memset(buffer, '\0', BUFFER_LENGTH);
 		//try to receive some data, this is a blocking call
@@ -130,47 +74,11 @@ void UDPServer::RecieveRequest(Request *req)
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			break;
 		}
-		/*int rbytes=0, n=0;
-		for (rbytes = 0; rbytes<MSGHDRSIZE; rbytes += n)
-		{
-			if ((n = recvfrom(s, (char *)req + rbytes, MSGHDRSIZE+BUFFER_LENGTH - rbytes, 0, (struct sockaddr *) &si_other, &slen)) <= 0)
-			{
-				std::cerr << "Received MSGHDR Error" << WSAGetLastError() << endl;
-				return;
-			}
-			else
-			{
-				std::cout << "Just recieved " << n << "bytes"<<endl;
-			}
-		}
-
-		// Check the received Message Buffer 
-		for (; rbytes<BUFFER_LENGTH + MSGHDRSIZE; rbytes += n)
-		{
-			if ((n = recvfrom(s, (char *)req + rbytes, BUFFER_LENGTH + MSGHDRSIZE - rbytes, 0, (struct sockaddr *) &si_other, &slen)) <= 0)
-			{
-				std::cerr << "Recevier Buffer Error" << endl;
-				return;
-			}
-		}*/
 		
-		//req = (Request *)buffer;
-		//print details of the client/peer and the data received
 		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-		printf("Data: %s %d\n", req, sizeof(req->filename));
-		//Request *r = (Request *)buffer;
-		printf(req->filename);
-
-		//now reply the client with the same data
-		/*if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
-		{
-			printf("sendto() failed with error code : %d", WSAGetLastError());
-			break;
-		}*/
+		printf("Filename: %s\n", req->filename);
+		printf("Request type: %d\n",req->type);
 	}
-
-	closesocket(s);
-	WSACleanup();
 }
 
 /*int main(void)
