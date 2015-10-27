@@ -206,6 +206,7 @@ int TcpClient::makeReliable()
 			closesocket(clientSock);
 			return -1;
 		}
+
 		break;
 	}
 

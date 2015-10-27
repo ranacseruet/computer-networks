@@ -75,10 +75,15 @@ class UDPClient
 {
 private:
 	int port;
+	int handle;
+	sockaddr_in address, myaddress;
+	Response Req;
+
 
 public:
 	UDPClient();
 	~UDPClient();
+	void CreateConnection();
 	bool SendRequest(Request);
 	bool SendDatat(Data data);
 
