@@ -60,25 +60,22 @@ void UDPServer::RecieveRequest(Request *req)
 	slen = sizeof(si_other);
 
 	//keep listening for data
-	while (1)
-	{
-		printf("Waiting for data... header size: %d", sizeof(req));
-		fflush(stdout);
+	printf("Waiting for data... header size: %d", sizeof(req));
+	fflush(stdout);
 
-		//clear the buffer by filling null, it might have previously received data
-		char buffer[BUFFER_LENGTH];
-		memset(buffer, '\0', BUFFER_LENGTH);
-		//try to receive some data, this is a blocking call
-		if ((recv_len = recvfrom(s, (char *)req, BUFFER_LENGTH, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
-		{
-			printf("recvfrom() failed with error code : %d", WSAGetLastError());
-			break;
-		}
-		
-		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-		printf("Filename: %s\n", req->filename);
-		printf("Request type: %d\n",req->type);
+	//clear the buffer by filling null, it might have previously received data
+	char buffer[BUFFER_LENGTH];
+	memset(buffer, '\0', BUFFER_LENGTH);
+	//try to receive some data, this is a blocking call
+	if ((recv_len = recvfrom(s, (char *)req, BUFFER_LENGTH, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
+	{
+		printf("recvfrom() failed with error code : %d", WSAGetLastError());
+		return;
 	}
+		
+	printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
+	printf("Filename: %s\n", req->filename);
+	printf("Request type: %d\n",req->type);
 }
 
 /*int main(void)
