@@ -7,7 +7,7 @@ class FTPClient
 
 private:
 	UDPClient * uc;
-
+	Request req;
 
 public:
 	FTPClient();

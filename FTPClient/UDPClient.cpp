@@ -57,20 +57,13 @@ void UDPClient::CreateConnection()
 	}
 }
 
-
-
 bool UDPClient::SendRequest(Request req)
 {	
 	CreateConnection();
 	char buffer[BUFFER_LENGTH];
-	
-	printf("Size: %d", sizeof(req));
 	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &req, sizeof(req));
-	printf("%s", buffer);
-	printf(req.filename);
-
-	printf("Size: %d" , sizeof(buffer));
+	
 	int sent_bytes = sendto(handle, (char *)buffer, sizeof(req), 0, (sockaddr*)&address, sizeof(sockaddr_in));
 
 	if (sent_bytes != sizeof(req))
@@ -117,6 +110,8 @@ void UDPClient::run()
 	
 }
 
+/*
+
 int main(void)
 {
 	Request request;
@@ -144,3 +139,4 @@ int main(void)
 	cin >> i;
 	return 0;
 }
+*/
