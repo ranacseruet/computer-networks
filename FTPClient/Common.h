@@ -1,6 +1,10 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #include <winsock.h>
+#include <iostream>
+#include <string>
+#include <windows.h>
+#include <sys/stat.h>
 
 #define HOSTNAME_LENGTH 20
 #define RESP_LENGTH 40
@@ -49,8 +53,5 @@ typedef struct
 	char conetent[BUFFER_LENGTH];
 }Data;
 
-typedef struct
-{
-	char buffer[BUFFER_LENGTH];
-}Container;
+
 

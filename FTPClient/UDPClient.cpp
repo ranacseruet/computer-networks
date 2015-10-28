@@ -1,15 +1,15 @@
-#include <windows.h>
+
 #include <sys/types.h>
 #include <iomanip>
-#include <iostream>
-#include <string>
-#include "Client.h"
+#include "UDPClient.h"
+
+using namespace std;
 
 unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
 
-	if ((host = gethostbyname("MDALIRANAEDAF")) == NULL)
+	if ((host = gethostbyname("valo-virus")) == NULL)
 	{
 		return(1);
 	}
@@ -63,10 +63,7 @@ bool UDPClient::SendRequest(Request req)
 {	
 	CreateConnection();
 	char buffer[BUFFER_LENGTH];
-	Container container;
-	memset(container.buffer, '\0', BUFFER_LENGTH);
-	memcpy(container.buffer, &req, sizeof(req));
-
+	
 	printf("Size: %d", sizeof(req));
 	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &req, sizeof(req));
@@ -87,7 +84,6 @@ bool UDPClient::SendRequest(Request req)
 
 Response UDPClient::RecieveResponse() 
 {
-	int numBytesRecv;
 	Response ptr;
 	char buffer[BUFFER_LENGTH];
 	int fromLength = sizeof(address);
@@ -121,9 +117,30 @@ void UDPClient::run()
 	
 }
 
-/*int main(void)
+int main(void)
 {
-	UDPClient* client = new UDPClient();
-	client->run();
+	Request request;
+	memset(&request, '\0', sizeof(request));
+
+	std::string s = "Hello hello";
+	strcpy(request.filename, s.c_str());
+
+	request.type = 2;
+	UDPClient *client = new UDPClient();
+
+	if (client->SendRequest(request))
+	{
+		cout << "Request Sent Successfully";
+	}
+	else
+	{
+		cout << "Request sending error";
+	}
+
+	Response res = client->RecieveResponse();
+	cout << res.message;
+
+	int i;
+	cin >> i;
 	return 0;
-}*/
+}

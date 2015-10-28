@@ -70,28 +70,6 @@ typedef struct
 	char dataBuffer[BUFFER_LENGTH];
 } Msg; 
 
-/* TcpServer Class */
-class UDPClient
-{
-private:
-	int port;
-	int handle;
-	sockaddr_in address, myaddress;
-	Response Req;
-
-
-public:
-	UDPClient();
-	~UDPClient();
-	void CreateConnection();
-	bool SendRequest(Request);
-	bool SendDatat(Data data);
-
-	void run(void);
-
-	Data RecieveData();
-	Response RecieveResponse();
-};
 
 /* TcpClient Class */
 class TcpClient

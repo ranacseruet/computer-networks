@@ -705,16 +705,18 @@ unsigned long getAddressByHost(char hostName[])
  *
  * @arg: int, char*
  */
+ /*
 int main(int argc, char *argv[])
 {
-	/*TcpClient * tc=new TcpClient();
+	TcpClient * tc=new TcpClient();
 	tc->startClient();
 	while(1)
 	{
 		tc->showMenu();
 	}
-	*/
+	
 
+	
 	Request request;
 	memset(&request, '\0', sizeof(request));
 
@@ -739,4 +741,6 @@ int main(int argc, char *argv[])
 	int i;
 	cin >> i;
 	return 0;
+
 }
+*/
