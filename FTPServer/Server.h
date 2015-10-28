@@ -63,7 +63,7 @@ class UDPServer
 private:
 	int port, serverSocket;
 	char serverName[HOSTNAME_LENGTH];
-	struct sockaddr_in server, si_other;
+	struct sockaddr_in server, client;
 	SOCKET s;
 	WSADATA wsa;
 public:

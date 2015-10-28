@@ -57,25 +57,35 @@ void UDPServer::RecieveRequest(Request *req)
 {
 	int slen, recv_len;
 
-	slen = sizeof(si_other);
+	slen = sizeof(client);
 
 	//keep listening for data
-	printf("Waiting for data... header size: %d", sizeof(req));
-	fflush(stdout);
+	printf("Waiting for Request...");
+	//fflush(stdout);
 
-	//clear the buffer by filling null, it might have previously received data
-	char buffer[BUFFER_LENGTH];
-	memset(buffer, '\0', BUFFER_LENGTH);
 	//try to receive some data, this is a blocking call
-	if ((recv_len = recvfrom(s, (char *)req, BUFFER_LENGTH, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
+	if ((recv_len = recvfrom(s, (char *)req, BUFFER_LENGTH, 0, (struct sockaddr *) &client, &slen)) == SOCKET_ERROR)
 	{
 		printf("recvfrom() failed with error code : %d", WSAGetLastError());
 		return;
 	}
-		
-	printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-	printf("Filename: %s\n", req->filename);
-	printf("Request type: %d\n",req->type);
+}
+
+bool UDPServer::SendResponse(Response response)
+{
+	char buffer[BUFFER_LENGTH];
+	memset(buffer, '\0', BUFFER_LENGTH);
+	memcpy(buffer, &response, sizeof(response));
+
+	int sent_bytes = sendto(s, (char *)buffer, sizeof(response), 0, (sockaddr*)&client, sizeof(sockaddr_in));
+
+	if (sent_bytes != sizeof(response))
+	{
+		printf("failed sending response to client. Sent bytes %d\n", sent_bytes);
+		return false;
+	}
+
+	return true;
 }
 
 /*int main(void)
