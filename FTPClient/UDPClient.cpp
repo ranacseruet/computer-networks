@@ -1,16 +1,15 @@
 #include <windows.h>
 #include <sys/types.h>
-
-#include "Client.h"
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include "Client.h"
 
 unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
 
-	if ((host = gethostbyname("MDALIRANAEDAF")) == NULL)
+	if ((host = gethostbyname("valo-virus")) == NULL)
 	{
 		return(1);
 	}
@@ -30,37 +29,39 @@ UDPClient::~UDPClient()
 	WSACleanup();
 }
 
-
-
-bool UDPClient::SendRequest(Request req)
+void UDPClient::CreateConnection() 
 {
-	int handle = socket(AF_INET, SOCK_DGRAM, 0);
+	handle = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (handle <= 0)
 	{
 		printf("failed to create socket\n");
-		return false;
 	}
 
-	sockaddr_in address;
+	//sockaddr_in address;
 	int ServPort = 5001;
 	memset(&address, 0, sizeof(address));     /* Zero out structure */
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = getAddressByHost();
 	address.sin_port = htons(ServPort);
 
-	sockaddr_in myaddress;
+	//sockaddr_in myaddress;
 	myaddress.sin_family = AF_INET;
 	myaddress.sin_addr.s_addr = INADDR_ANY;
 	myaddress.sin_port = htons((unsigned short)0);
-	
+
 
 	if (bind(handle, (const sockaddr*)&myaddress, sizeof(sockaddr_in)) < 0)
 	{
 		printf("failed to bind socket\n");
-		return false;
 	}
-	
+}
+
+
+
+bool UDPClient::SendRequest(Request req)
+{	
+	CreateConnection();
 	char buffer[BUFFER_LENGTH];
 	Container container;
 	memset(container.buffer, '\0', BUFFER_LENGTH);
@@ -81,8 +82,26 @@ bool UDPClient::SendRequest(Request req)
 		return false;
 	}
 
-	closesocket(handle);
+	
 	return true;
+};
+
+Response UDPClient::RecieveResponse() 
+{
+	int numBytesRecv;
+	Response *ptr;
+	char buffer[BUFFER_LENGTH];
+	int fromLength = sizeof(address);
+
+	//try to receive some data, this is a blocking call
+	if (recvfrom(handle, (char *)ptr, BUFFER_LENGTH, 0, (struct sockaddr *) &address, &fromLength) == SOCKET_ERROR)
+	{
+		printf("recvfrom() failed with error code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
+
+	closesocket(handle);
+	return *ptr;
 };
 
 
