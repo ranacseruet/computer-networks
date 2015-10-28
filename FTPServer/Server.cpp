@@ -579,35 +579,3 @@ void TcpThread::run()
 		cout << "Unknown Request Type: " << receiveMsg.type;
 	}
 }
-
-/**
-* Function - main
-* Usage: Initiates the Server
-*
-* @arg: void
-*/
-int main(void)
-{
-	//Enable when log to file
-	/*ofstream out("data\\server_log.txt");
-	streambuf *coutbuf = std::cout.rdbuf(); //save old buf
-	cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
-	*/
-
-	/*TcpServer ts;
-	// Start the server and start listening to requests
-	ts.start();*/
-	Request req;
-	UDPServer *server = new UDPServer(0);
-	server->RecieveRequest(&req);
-
-	Response res;
-	memset(&res, '\0', sizeof(res));
-	std::string s = "Response From Server";
-	strcpy(res.message, s.c_str());
-	server->SendResponse(res);
-
-	int i;
-	cin >> i;
-	return 0;
-}
