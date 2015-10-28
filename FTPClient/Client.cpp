@@ -732,6 +732,8 @@ int main(int argc, char *argv[])
 	{
 		cout << "Request sending error";
 	}
+	Response res = client->RecieveResponse();
+	cout << res.message;
 	int i;
 	cin >> i;
 	return 0;

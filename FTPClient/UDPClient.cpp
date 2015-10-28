@@ -9,7 +9,7 @@ unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
 
-	if ((host = gethostbyname("valo-virus")) == NULL)
+	if ((host = gethostbyname("MDALIRANAEDAF")) == NULL)
 	{
 		return(1);
 	}
@@ -82,26 +82,25 @@ bool UDPClient::SendRequest(Request req)
 		return false;
 	}
 
-	
 	return true;
 };
 
 Response UDPClient::RecieveResponse() 
 {
 	int numBytesRecv;
-	Response *ptr;
+	Response ptr;
 	char buffer[BUFFER_LENGTH];
 	int fromLength = sizeof(address);
 
 	//try to receive some data, this is a blocking call
-	if (recvfrom(handle, (char *)ptr, BUFFER_LENGTH, 0, (struct sockaddr *) &address, &fromLength) == SOCKET_ERROR)
+	if (recvfrom(handle, (char *)&ptr, BUFFER_LENGTH, 0, (struct sockaddr *) &address, &fromLength) == SOCKET_ERROR)
 	{
 		printf("recvfrom() failed with error code : %d", WSAGetLastError());
-		exit(EXIT_FAILURE);
+		return ptr;
 	}
 
 	closesocket(handle);
-	return *ptr;
+	return ptr;
 };
 
 

@@ -69,6 +69,7 @@ void UDPServer::RecieveRequest(Request *req)
 		printf("recvfrom() failed with error code : %d", WSAGetLastError());
 		return;
 	}
+	printf("recieved request. Filename: %s\n", req->filename);
 }
 
 bool UDPServer::SendResponse(Response response)
@@ -84,6 +85,7 @@ bool UDPServer::SendResponse(Response response)
 		printf("failed sending response to client. Sent bytes %d\n", sent_bytes);
 		return false;
 	}
+	printf("Sent response. Message: %s\n", response.message);
 
 	return true;
 }
