@@ -6,7 +6,7 @@
 
 using namespace std;
 
-UDPServer::UDPServer(int port)
+UDPServer::UDPServer()
 {
 	//Initialise winsock
 	printf("\nInitialising Winsock...");
@@ -27,7 +27,7 @@ UDPServer::UDPServer(int port)
 	//Prepare the sockaddr_in structure
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(5001);
+	server.sin_port = htons(SERVER_PORT);
 
 	//Bind
 	if (bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
@@ -69,7 +69,7 @@ bool UDPServer::RecieveRequest(Request *req)
 		printf("recvfrom() failed with error code : %d", WSAGetLastError());
 		return false;
 	}
-	printf("recieved request. Filename: %s\n", req->filename);
+	printf("Recieved a request. Request Type: %d\n", req->type);
 	return true;
 }
 

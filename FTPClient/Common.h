@@ -5,15 +5,17 @@
 #include <string>
 #include <windows.h>
 #include <sys/stat.h>
+#include <direct.h>
+
+#define SERVER_PORT 5001
 
 #define HOSTNAME_LENGTH 20
-#define RESP_LENGTH 40
-#define FILENAME_LENGTH 20
-#define SERVER_PORT 5001
+#define RESP_LENGTH 140
+#define FILENAME_LENGTH 80
 #define BUFFER_LENGTH 256
-#define MAXPENDING 10
-#define MSGHDRSIZE 8
-#define ACK_LENGHT 3
+//BUFFER_LENGTH is largest one
+
+using namespace std;
 
 typedef enum
 {
@@ -44,28 +46,68 @@ typedef struct
 {
 	Handshake handshake;
 	int type;
-	char message[FILENAME_LENGTH];
+	char message[RESP_LENGTH];
 }Response;
 
 typedef struct
 {	
 	Handshake handshake;
-	char conetent[BUFFER_LENGTH];
+	char content[RESP_LENGTH];
 }Data;
 
 
 
 public class FileHelper
 {
-	std::string dirPath;
+	string dirPath;
+	
+	wstring s2ws(const std::string& s)
+	{
+		int len;
+		int slength = (int)s.length() + 1;
+		len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+		wchar_t* buf = new wchar_t[len];
+		MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+		std::wstring r(buf);
+		delete[] buf;
+		return r;
+	}
 public:
-	FileHelper(std::string path)
+	FileHelper(string path)
 	{
 		dirPath = path;
 	}
 
-	std::string getListOfFiles(void)
+	string getListOfFiles(void)
 	{
-		return "file1.jpg\n";
+		char cCurrentPath[FILENAME_MAX], fileName[1000];
+		char files[100];
+		memset(files, '\0', sizeof(files));
+		_getcwd(cCurrentPath, sizeof(cCurrentPath));
+
+		HANDLE hFind;
+		WIN32_FIND_DATA data;
+		std::wstring stemp = s2ws(strcat(cCurrentPath, dirPath.c_str()));
+		LPCWSTR rootPath = stemp.c_str();
+		hFind = FindFirstFile(rootPath, &data);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			int i = 0;
+			do {
+				//wprintf_s(data.cFileName);
+				wcstombs(fileName, data.cFileName, sizeof(data.cFileName));
+				if (strcmp(fileName, ".") != 0 && strcmp(fileName, "..") != 0)
+				{
+					memcpy((files + strlen(files)), fileName, strlen(fileName));
+					strcat(files, "\n");
+					i++;
+				}
+			} while (FindNextFile(hFind, &data));
+			FindClose(hFind);
+		}
+		else {
+			cout << "invalid handle value: " << hFind;
+		}
+		string str(files);
+		return str;
 	}
 };

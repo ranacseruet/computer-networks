@@ -32,17 +32,16 @@ void FTPServer::list(Request request)
 	Response response;
 	memset(&response, '\0', sizeof(response));
 	string filesList = fileHelper->getListOfFiles();
-	cout << "Got files list: " << filesList;
+	//cout << "Got files list: " << filesList;
 	strcpy(response.message, filesList.c_str());
 	udpServer->SendResponse(response);
-	cout << "Sent list response:" << response.message;
 }
 
 int main(void)
 {
 	Request req;
-	UDPServer *server = new UDPServer(0);
-	FileHelper *helper = new FileHelper("./data");
+	UDPServer *server = new UDPServer();
+	FileHelper *helper = new FileHelper("\\data\\*");
 
 	FTPServer *ftpServer = new FTPServer(server, helper);
 	ftpServer->run();
