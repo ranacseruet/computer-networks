@@ -9,7 +9,7 @@ unsigned long getAddressByHost()
 {
 	struct hostent *host;            /* Structure containing host information */
 
-	if ((host = gethostbyname("valo-virus")) == NULL)
+	if ((host = gethostbyname("MDALIRANAEDAF")) == NULL)
 	{
 		return(1);
 	}

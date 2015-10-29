@@ -55,3 +55,17 @@ typedef struct
 
 
 
+public class FileHelper
+{
+	std::string dirPath;
+public:
+	FileHelper(std::string path)
+	{
+		dirPath = path;
+	}
+
+	std::string getListOfFiles(void)
+	{
+		return "file1.jpg\n";
+	}
+};

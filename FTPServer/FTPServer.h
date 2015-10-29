@@ -1,11 +1,12 @@
 #include "UDPServer.h"
 
-class FTPServer
+public class FTPServer
 {
 private:
-	UDPServer serverInstance;
+	UDPServer* udpServer;
+	FileHelper* fileHelper;
 public:
-	FTPServer(void);
+	FTPServer(UDPServer*, FileHelper*);
 	~FTPServer(void);
 
 	void run(void);
@@ -13,6 +14,6 @@ public:
 	void get(void);
 	void put(void);
 	void del(void);
-	void list(void);
+	void list(Request);
 	void handshake(void);
 };

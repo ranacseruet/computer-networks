@@ -1,6 +1,6 @@
 #include "../FTPClient/Common.h"
 
-class UDPServer
+public class UDPServer
 {
 private:
 	int port, serverSocket;
@@ -17,6 +17,6 @@ public:
 	bool SendDatat(Data data);
 	bool SendResponse(Response data);
 
-	void RecieveRequest(Request*);
+	bool RecieveRequest(Request*);
 	Data RecieveData();
 };

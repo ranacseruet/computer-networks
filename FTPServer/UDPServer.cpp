@@ -53,7 +53,7 @@ UDPServer::~UDPServer()
 	WSACleanup();
 }
 
-void UDPServer::RecieveRequest(Request *req)
+bool UDPServer::RecieveRequest(Request *req)
 {
 	int slen, recv_len;
 
@@ -67,9 +67,10 @@ void UDPServer::RecieveRequest(Request *req)
 	if ((recv_len = recvfrom(s, (char *)req, BUFFER_LENGTH, 0, (struct sockaddr *) &client, &slen)) == SOCKET_ERROR)
 	{
 		printf("recvfrom() failed with error code : %d", WSAGetLastError());
-		return;
+		return false;
 	}
 	printf("recieved request. Filename: %s\n", req->filename);
+	return true;
 }
 
 bool UDPServer::SendResponse(Response response)
