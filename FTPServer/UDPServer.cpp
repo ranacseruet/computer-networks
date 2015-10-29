@@ -6,23 +6,30 @@
 
 using namespace std;
 
-UDPServer::UDPServer()
+UDPServer::UDPServer(Logger* log)
 {
+	logger = log;
 	//Initialise winsock
-	printf("\nInitialising Winsock...");
+	//printf("\nInitialising Winsock...");
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
-		printf("Failed. Error Code : %d", WSAGetLastError());
+		//printf("Failed. Error Code : %d", WSAGetLastError());
+		char *intStr = itoa(WSAGetLastError(), intStr, 10);
+		string errCode = string(intStr);
+		logger->Log("Failed. Error Code : " + errCode);
 		exit(EXIT_FAILURE);
 	}
-	printf("Initialised.\n");
+	//printf("Initialised.\n");
 
 	//Create a socket
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
 	{
-		printf("Could not create socket : %d", WSAGetLastError());
+		//printf("Could not create socket : %d", WSAGetLastError());
+		char *intStr = itoa(WSAGetLastError(), intStr, 10);
+		string errCode = string(intStr);
+		logger->Log("Could not create socket. Error code : " + errCode);
 	}
-	printf("Socket created.\n");
+	//printf("Socket created.\n");
 
 	//Prepare the sockaddr_in structure
 	server.sin_family = AF_INET;
@@ -32,7 +39,10 @@ UDPServer::UDPServer()
 	//Bind
 	if (bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
 	{
-		printf("Bind failed with error code : %d", WSAGetLastError());
+		//printf("Bind failed with error code : %d", WSAGetLastError());
+		char *intStr = itoa(WSAGetLastError(), intStr, 10);
+		string errCode = string(intStr);
+		logger->Log("Bind failed with error code : " + errCode);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -69,7 +79,8 @@ bool UDPServer::RecieveRequest(Request *req)
 		printf("recvfrom() failed with error code : %d", WSAGetLastError());
 		return false;
 	}
-	printf("Recieved a request. Request Type: %d\n", req->type);
+	//char* type = itoa(req->type, type, 10);
+	logger->Log("Recieved a request. Request Type: ");
 	return true;
 }
 
@@ -86,7 +97,8 @@ bool UDPServer::SendResponse(Response response)
 		printf("failed sending response to client. Sent bytes %d\n", sent_bytes);
 		return false;
 	}
-	printf("Sent response. Message: %s\n", response.message);
+	//printf("Sent response. Message: %s\n", response.message);
+	logger->Log("Sent response. Message: " + string(response.message));
 
 	return true;
 }

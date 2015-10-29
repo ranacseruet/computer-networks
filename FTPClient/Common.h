@@ -2,6 +2,7 @@
 
 #include <winsock.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <windows.h>
 #include <sys/stat.h>
@@ -57,6 +58,27 @@ typedef struct
 
 
 
+public class Logger
+{
+	string logPath;
+public:
+	Logger(string path)
+	{
+		logPath = path;
+	}
+
+	void Log(string message)
+	{
+		cout << message <<endl;
+		
+		//std::ofstream outfile;
+		//outfile.open(logPath, std::ios_base::app);
+		//outfile << message;
+		//outfile.close();
+	}
+};
+
+
 public class FileHelper
 {
 	string dirPath;
@@ -78,7 +100,7 @@ public:
 		dirPath = path;
 	}
 
-	string getListOfFiles(void)
+	string GetListOfFiles(void)
 	{
 		char cCurrentPath[FILENAME_MAX], fileName[1000];
 		char files[100];

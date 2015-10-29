@@ -5,8 +5,9 @@ public class FTPServer
 private:
 	UDPServer* udpServer;
 	FileHelper* fileHelper;
+	Logger* logger;
 public:
-	FTPServer(UDPServer*, FileHelper*);
+	FTPServer(UDPServer*, FileHelper*, Logger*);
 	~FTPServer(void);
 
 	void run(void);

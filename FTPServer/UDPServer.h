@@ -7,8 +7,9 @@ private:
 	struct sockaddr_in server, client;
 	SOCKET s;
 	WSADATA wsa;
+	Logger *logger;
 public:
-	UDPServer(void);
+	UDPServer(Logger*);
 	~UDPServer(void);
 
 	void run(void);
