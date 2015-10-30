@@ -12,7 +12,7 @@ public:
 
 	void run(void);
 
-	void get(void);
+	void get(Request);
 	void put(void);
 	void del(void);
 	void list(Request);

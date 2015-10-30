@@ -11,10 +11,11 @@ private:
 	int handle;
 
 	sockaddr_in address, myaddress;
-	
+	char hostName[50];
 public:
 	UDPClient();
 	~UDPClient();
+	void SetHostName(char[]);
 	void CreateConnection();
 	bool SendRequest(Request);
 	bool SendDatat(Data data);

@@ -48,12 +48,14 @@ typedef struct
 	Handshake handshake;
 	int type;
 	char message[RESP_LENGTH];
+	bool isSuccess;
 }Response;
 
 typedef struct
 {	
 	Handshake handshake;
 	char content[RESP_LENGTH];
+	bool isLastPacket;
 }Data;
 
 

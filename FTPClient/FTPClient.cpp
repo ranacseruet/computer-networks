@@ -5,6 +5,7 @@ using namespace std;
 FTPClient::FTPClient()
 {
 	uc = new UDPClient();
+	uc->SetHostName("MDALIRANAEDAF");
 }
 
 int FTPClient::handshake()
@@ -23,7 +24,7 @@ void FTPClient::list()
 	std::string s = "";
 	strcpy(req.filename, s.c_str());
 
-	req.type = REQ_GET;
+	req.type = REQ_LIST;
 	req.handshake.seq = handshake_value;
 
 	//sending list request

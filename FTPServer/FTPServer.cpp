@@ -19,8 +19,10 @@ void FTPServer::run()
 		switch (request.type)
 		{
 		case REQ_LIST:
-		case REQ_GET:
 			list(request);
+			break;
+		case REQ_GET:
+			get(request);
 			break;
 		default:
 			break;
@@ -36,6 +38,13 @@ void FTPServer::list(Request request)
 	strcpy(response.message, filesList.c_str());
 	udpServer->SendResponse(response);
 	logger->Log("Responsed to LIST operation with message: " + filesList);
+}
+
+void FTPServer::get(Request request)
+{
+	//send response with success true/false
+
+	//send data 
 }
 
 int main(void)

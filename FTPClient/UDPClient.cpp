@@ -5,11 +5,11 @@
 
 using namespace std;
 
-unsigned long getAddressByHost()
+unsigned long getAddressByHost(char hostName[50])
 {
 	struct hostent *host;            /* Structure containing host information */
 
-	if ((host = gethostbyname("MDALIRANAEDAF")) == NULL)
+	if ((host = gethostbyname(hostName)) == NULL)
 	{
 		return(1);
 	}
@@ -29,6 +29,11 @@ UDPClient::~UDPClient()
 	WSACleanup();
 }
 
+void UDPClient::SetHostName(char host[])
+{
+	strcpy(hostName, host);
+}
+
 void UDPClient::CreateConnection() 
 {
 	handle = socket(AF_INET, SOCK_DGRAM, 0);
@@ -42,7 +47,7 @@ void UDPClient::CreateConnection()
 	int ServPort = 5001;
 	memset(&address, 0, sizeof(address));     /* Zero out structure */
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = getAddressByHost();
+	address.sin_addr.s_addr = getAddressByHost(hostName);//"MDALIRANAEDAF"
 	address.sin_port = htons(ServPort);
 
 	//sockaddr_in myaddress;

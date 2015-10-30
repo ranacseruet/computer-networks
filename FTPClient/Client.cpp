@@ -686,7 +686,7 @@ TcpClient::~TcpClient()
 	WSACleanup();
 }
 
-unsigned long getAddressByHost(char hostName[])
+/*unsigned long getAddressByHost(char hostName[])
 {
 	struct hostent *host;            // Structure containing host information
 
@@ -697,7 +697,7 @@ unsigned long getAddressByHost(char hostName[])
 
 	// Return the binary, network byte ordered address
 	return *((unsigned long *)host->h_addr_list[0]);
-}
+}*/
 
 /**
  * Function - main
