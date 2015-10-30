@@ -35,16 +35,45 @@ void FTPServer::list(Request request)
 	Response response;
 	memset(&response, '\0', sizeof(response));
 	string filesList = fileHelper->GetListOfFiles();
-	strcpy(response.message, filesList.c_str());
+	if (strlen(filesList.c_str()) <= 0)
+	{
+		strcpy(response.message, "No files exist in server");
+		response.isSuccess = false;
+	}
+	else 
+	{
+		strcpy(response.message, filesList.c_str());
+		response.isSuccess = true;
+	}
 	udpServer->SendResponse(response);
 	logger->Log("Responsed to LIST operation with message: " + filesList);
 }
 
 void FTPServer::get(Request request)
 {
-	//send response with success true/false
+	//1. Send success/failure response
+	Response response;
+	memset(&response, '\0', sizeof(response));
+	if (!fileHelper->DoesFileExist(request.filename))
+	{
+		strcpy(response.message, "File doesn't exist");
+		response.isSuccess = false;
+	}
+	else
+	{
+		strcpy(response.message, "File exist");
+		response.isSuccess = true;
+	}
+	udpServer->SendResponse(response);
+	
+	if (!response.isSuccess)
+	{
+		//no data to send
+		return;
+	}
 
 	//send data 
+
 }
 
 int main(void)
@@ -52,8 +81,7 @@ int main(void)
 	Request req;
 	Logger *logger = new Logger("data\\server_log.txt");
 	UDPServer *server = new UDPServer(logger);
-	FileHelper *helper = new FileHelper("\\data\\*");
-
+	FileHelper *helper = new FileHelper("\\data\\");
 	FTPServer *ftpServer = new FTPServer(server, helper, logger);
 	ftpServer->run();
 

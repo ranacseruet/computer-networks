@@ -83,35 +83,46 @@ public:
 
 public class FileHelper
 {
-	string dirPath;
-	
-	wstring s2ws(const std::string& s)
+	//TODO both together suppose to be FILENAME_MAX
+	char dataDir[FILENAME_MAX];
+
+	static wchar_t* charToWChar(const char* text)
 	{
-		int len;
-		int slength = (int)s.length() + 1;
-		len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-		wchar_t* buf = new wchar_t[len];
-		MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-		std::wstring r(buf);
-		delete[] buf;
-		return r;
+		size_t size = strlen(text) + 1;
+		wchar_t* wa = new wchar_t[size];
+		mbstowcs(wa, text, size);
+		return wa;
 	}
 public:
-	FileHelper(string path)
+	FileHelper(char path[FILENAME_MAX])
 	{
-		dirPath = path;
+		char currentDirectory[FILENAME_MAX];
+
+		memset(currentDirectory, '\0', sizeof(currentDirectory));
+		_getcwd(currentDirectory, sizeof(currentDirectory));
+
+		memset(dataDir, '\0', sizeof(dataDir));
+		strcat(dataDir, currentDirectory);
+		strcat(dataDir, path);
 	}
 
 	string GetListOfFiles(void)
 	{
-		char cCurrentPath[FILENAME_MAX], fileName[1000];
+		char fileName[1000];
+		memset(fileName, '\0', sizeof(fileName));
+
 		char files[100];
 		memset(files, '\0', sizeof(files));
-		_getcwd(cCurrentPath, sizeof(cCurrentPath));
+
+		char pathToTraverse[FILENAME_MAX];
+		memset(pathToTraverse, '\0', sizeof(pathToTraverse));
 
 		HANDLE hFind;
 		WIN32_FIND_DATA data;
-		std::wstring stemp = s2ws(strcat(cCurrentPath, dirPath.c_str()));
+
+		strcpy(pathToTraverse, dataDir);
+		strcat(pathToTraverse, "*");
+		wstring stemp = charToWChar(pathToTraverse);
 		LPCWSTR rootPath = stemp.c_str();
 		hFind = FindFirstFile(rootPath, &data);
 		if (hFind != INVALID_HANDLE_VALUE) {
@@ -133,5 +144,17 @@ public:
 		}
 		string str(files);
 		return str;
+	}
+
+	bool DoesFileExist(char fileName[FILENAME_MAX])
+	{
+		char fullPath[FILENAME_MAX];
+		memset(fullPath, '\0', sizeof(fullPath));
+		strcpy(fullPath, dataDir);
+		strcat(fullPath, "\\");
+		strcat(fullPath, fileName);
+		cout << dataDir <<endl<< fullPath << endl;
+		struct _stat stat_buf;
+		return (_stat(fullPath, &stat_buf) == 0);
 	}
 };

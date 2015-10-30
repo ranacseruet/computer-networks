@@ -37,6 +37,26 @@ void FTPClient::list()
 
 void FTPClient::get()
 {
+	list();
+
+	int handshake_value = handshake();
+	memset(&req, '\0', sizeof(req));
+
+	//TODO take user input and set
+	std::string s = "server_log.txt";
+	strcpy(req.filename, s.c_str());
+
+	req.type = REQ_GET;
+	req.handshake.seq = handshake_value;
+
+	//sending list request
+	uc->SendRequest(req);
+
+	//Receive Response
+	Response res = uc->RecieveResponse();
+	cout << res.message<<endl;
+
+	//TODO check status and recieve data if success
 }
 
 void FTPClient::put()
