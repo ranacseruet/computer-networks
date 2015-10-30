@@ -8,6 +8,7 @@ class FTPClient
 private:
 	UDPClient * uc;
 	Request req;
+	string serverIpAdd;
 
 public:
 	FTPClient();

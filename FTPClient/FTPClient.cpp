@@ -65,10 +65,50 @@ void FTPClient::put()
 
 void FTPClient::del()
 {
+	list();
+
+	int handshake_value = handshake();
+	memset(&req, '\0', sizeof(req));
+
+	//taking input for sending file
+	string deleteFileName;
+	cout << "Type the name of file to be Deleted: " << endl;
+	getline(cin, deleteFileName);
+	strcpy(req.filename, deleteFileName.c_str());
+
+	req.type = REQ_DELETE;
+	req.handshake.seq = handshake_value;
+
+	//sending list request
+	uc->SendRequest(req);
+
+	//Receive Response
+	Response res = uc->RecieveResponse();
+	cout << res.message << endl;
 }
 
 void FTPClient::rename()
 {
+	list();
+
+	int handshake_value = handshake();
+	memset(&req, '\0', sizeof(req));
+
+	//taking input for sending file
+	string fileName;
+	cout << "Type file name to be renamed:    (Format: formFileName_Space_toFileName)" << endl;
+	getline(cin, fileName);
+	strcpy(req.filename, fileName.c_str());
+
+	req.type = REQ_RENAME;
+	req.handshake.seq = handshake_value;
+
+	//sending list request
+	uc->SendRequest(req);
+
+	//Receive Response
+	Response res = uc->RecieveResponse();
+	cout << res.message << endl;
 }
 
 void FTPClient::showMenu() 
@@ -92,22 +132,27 @@ void FTPClient::showMenu()
 	switch (optionVal)
 	{
 	case 1:
+		cin.ignore();
 		list();
 		break;
 
 	case 2:
+		cin.ignore();
 		get();
 		break;
 
 	case 3:
+		cin.ignore();
 		put();
 		break;
 
 	case 4:
+		cin.ignore();
 		del();
 		break;
 
 	case 5:
+		cin.ignore();
 		rename();
 		break;
 
@@ -128,6 +173,9 @@ void FTPClient::showMenu()
 int main() 
 {
 	FTPClient * fc = new FTPClient();
+	cout << "Type name of ftp server: " << endl;
+	//cin.getline(serverIpAdd, 256);
+	
 	while (1)
 	{
 		fc->showMenu();
