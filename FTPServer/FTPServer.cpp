@@ -15,7 +15,13 @@ void FTPServer::run()
 	while (1)
 	{
 		Request request;
-		udpServer->RecieveRequest(&request);
+		bool success = udpServer->RecieveRequest(&request);
+		if (!success)
+		{
+			//error occured
+			break;
+		}
+
 		switch (request.type)
 		{
 		case REQ_LIST:
@@ -46,7 +52,7 @@ void FTPServer::list(Request request)
 		response.isSuccess = true;
 	}
 	udpServer->SendResponse(response);
-	logger->Log("Responsed to LIST operation with message: " + filesList);
+	logger->Log("Responsed to LIST operation");
 }
 
 void FTPServer::get(Request request)
@@ -72,8 +78,29 @@ void FTPServer::get(Request request)
 		return;
 	}
 
-	//send data 
-
+	//send data
+	char dataStream[RESP_LENGTH];
+	memset(dataStream, '\0', sizeof(dataStream));
+	Data data;
+	long pos = 0;
+	while (1)
+	{
+		bool success = fileHelper->ReadFile(request.filename, pos, dataStream);
+		strcpy(data.content, dataStream);
+		udpServer->SendData(data);
+		cout << data.content;
+		if (!success)
+		{
+			cout << "File read completed: " << strlen(dataStream) << " bytes" << endl;
+			break;
+		}
+		else
+		{
+			cout << "File read:"<< strlen(dataStream) <<" bytes" << endl;
+		}
+		pos += strlen(dataStream);
+	}
+	logger->Log("\nFile data sending complete");
 }
 
 int main(void)

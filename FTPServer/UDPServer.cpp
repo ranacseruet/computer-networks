@@ -103,6 +103,25 @@ bool UDPServer::SendResponse(Response response)
 	return true;
 }
 
+bool UDPServer::SendData(Data data)
+{
+	char buffer[BUFFER_LENGTH];
+	memset(buffer, '\0', BUFFER_LENGTH);
+	memcpy(buffer, &data, sizeof(data));
+
+	int sent_bytes = sendto(s, (char *)buffer, sizeof(data), 0, (sockaddr*)&client, sizeof(sockaddr_in));
+
+	if (sent_bytes != sizeof(data))
+	{
+		printf("failed sending response to client. Sent bytes %d\n", sent_bytes);
+		return false;
+	}
+	//printf("Sent response. Message: %s\n", response.message);
+	logger->Log("Sent data. content: " + string(data.content));
+
+	return true;
+}
+
 /*int main(void)
 {
 	UDPServer* server = new UDPServer(0);

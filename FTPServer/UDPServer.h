@@ -14,7 +14,7 @@ public:
 
 	void run(void);
 
-	bool SendDatat(Data data);
+	bool SendData(Data data);
 	bool SendResponse(Response data);
 
 	bool RecieveRequest(Request*);

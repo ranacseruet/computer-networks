@@ -60,6 +60,12 @@ typedef struct
 
 
 
+
+
+//Common classes, Used by both Client and Server
+//**********************************************
+
+//Logger
 public class Logger
 {
 	string logPath;
@@ -81,10 +87,12 @@ public:
 };
 
 
+//File read/write helper
 public class FileHelper
 {
 	//TODO both together suppose to be FILENAME_MAX
 	char dataDir[FILENAME_MAX];
+	ifstream fileReader;
 
 	static wchar_t* charToWChar(const char* text)
 	{
@@ -92,6 +100,14 @@ public class FileHelper
 		wchar_t* wa = new wchar_t[size];
 		mbstowcs(wa, text, size);
 		return wa;
+	}
+
+	void buildFullFilePath(char fullPath[], char fileName[])
+	{
+		memset(fullPath, '\0', sizeof(fullPath));
+		strcpy(fullPath, dataDir);
+		strcat(fullPath, "\\");
+		strcat(fullPath, fileName);
 	}
 public:
 	FileHelper(char path[FILENAME_MAX])
@@ -149,12 +165,32 @@ public:
 	bool DoesFileExist(char fileName[FILENAME_MAX])
 	{
 		char fullPath[FILENAME_MAX];
-		memset(fullPath, '\0', sizeof(fullPath));
-		strcpy(fullPath, dataDir);
-		strcat(fullPath, "\\");
-		strcat(fullPath, fileName);
-		cout << dataDir <<endl<< fullPath << endl;
+		buildFullFilePath(fullPath, fileName);
 		struct _stat stat_buf;
 		return (_stat(fullPath, &stat_buf) == 0);
+	}
+
+	bool ReadFile(char fileName[FILENAME_MAX], long pos, char buffer[RESP_LENGTH])
+	{
+		char fullPath[FILENAME_MAX];
+		buildFullFilePath(fullPath, fileName);
+		
+		if (!DoesFileExist(fileName))
+		{
+			return false;
+		}
+		struct _stat stat_buf;
+		_stat(fullPath, &stat_buf);
+		
+		fileReader.open(fullPath, ios::in | ios::binary);
+		if (fileReader.is_open())
+		{
+			fileReader.seekg(pos);
+			memset(buffer, '\0', RESP_LENGTH);
+			/* Read the contents of file and write into the buffer for transmission */
+			fileReader.read(buffer, RESP_LENGTH);
+		}
+		fileReader.close();
+		return (strlen(buffer) == RESP_LENGTH);
 	}
 };
