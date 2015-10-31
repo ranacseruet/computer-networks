@@ -13,6 +13,7 @@ private:
 public:
 	FTPClient();
 
+	void run();
 	void showMenu();
 	int handshake();
 	void list();

@@ -5,7 +5,6 @@ using namespace std;
 FTPClient::FTPClient()
 {
 	uc = new UDPClient();
-	uc->SetHostName("MDALIRANAEDAF");
 }
 
 int FTPClient::handshake()
@@ -57,22 +56,26 @@ void FTPClient::get()
 
 	//Receive Response
 	Response res = uc->RecieveResponse();
-	cout << res.message<<endl;
+	cout << res.message << endl;
+
+	if (!res.isSuccess) 
+	{
+		uc->CloseConnection();
+		return;
+	}
 
 	Data resData;
-	ofstream myFile(fileName, ios::out | ios::binary);
+	FileHelper * fh = new FileHelper("\\client_data\\");
 	while (true)
 	{
 		resData = uc->RecieveData();
-		myFile.write(resData.content, sizeof(resData.content));
+		fh->WriteFile(req.filename, resData.content);
 
 		if (resData.isLastPacket) {
 			cout << "Last Packet Received." << endl;
 			break;
 		}
 	}
-	myFile.close();
-
 	uc->CloseConnection();
 }
 
@@ -147,6 +150,20 @@ void FTPClient::rename()
 	uc->CloseConnection();
 }
 
+void FTPClient::run()
+{
+	char  fileName[FILENAME_MAX];
+	cout << "Type name of ftp server: " << endl;
+	cin >> fileName;
+	uc->SetHostName(fileName);
+	cin.clear();
+
+	while (1)
+	{
+		showMenu();
+	}
+}
+
 void FTPClient::showMenu() 
 {
 	int optionVal;
@@ -209,13 +226,7 @@ void FTPClient::showMenu()
 int main() 
 {
 	FTPClient * fc = new FTPClient();
-
-	cout << "Type name of ftp server: " << endl;
-	
-	while (1)
-	{
-		fc->showMenu();
-	}
+	fc->run();
 }
 
 FTPClient::~FTPClient()

@@ -193,4 +193,14 @@ public:
 		fileReader.close();
 		return (strlen(buffer) == RESP_LENGTH);
 	}
+
+	void WriteFile(char fileName[FILENAME_MAX], char buffer[RESP_LENGTH])
+	{
+		char fullPath[FILENAME_MAX];
+		buildFullFilePath(fullPath, fileName);
+		ofstream myFile(fullPath, ios::out | ios::binary | ios::app);
+		myFile.write(buffer, sizeof(buffer));
+		myFile.close();
+		return;
+	}
 };

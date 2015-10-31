@@ -109,7 +109,7 @@ int main(void)
 	Request req;
 	Logger *logger = new Logger("data\\server_log.txt");
 	UDPServer *server = new UDPServer(logger);
-	FileHelper *helper = new FileHelper("\\data\\");
+	FileHelper *helper = new FileHelper("\\server_data\\");
 	FTPServer *ftpServer = new FTPServer(server, helper, logger);
 	ftpServer->run();
 
