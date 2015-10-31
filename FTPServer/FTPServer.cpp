@@ -85,12 +85,12 @@ void FTPServer::get(Request request)
 	long pos = 0;
 	while (1)
 	{
-		bool success = fileHelper->ReadFile(request.filename, pos, dataStream);
+		bool lastPacket = !fileHelper->ReadFile(request.filename, pos, dataStream);
 		strcpy(data.content, dataStream);
-		data.isLastPacket = !success;
+		data.isLastPacket = lastPacket;
 		udpServer->SendData(data);
 		cout << data.content;
-		if (!success)
+		if (lastPacket)
 		{
 			cout << "File read completed: " << strlen(dataStream) << " bytes" << endl;
 			break;

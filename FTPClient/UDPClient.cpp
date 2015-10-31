@@ -86,8 +86,8 @@ bool UDPClient::SendRequest(Request req)
 
 bool UDPClient::SendData(Data data) {
 
-	char buffer[BUFFER_LENGTH+20];
-	memset(buffer, '\0', BUFFER_LENGTH+20);
+	char buffer[BUFFER_LENGTH];
+	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &data, sizeof(data));
 
 	int sent_bytes = sendto(handle, (char *)buffer, sizeof(data), 0, (sockaddr*)&address, sizeof(sockaddr_in));
