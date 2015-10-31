@@ -96,9 +96,42 @@ void FTPClient::put()
 	req.type = REQ_PUT;
 	req.handshake.seq = handshake_value;
 
+	
 	//sending list request
 	uc->CreateConnection();
 	uc->SendRequest(req);
+
+	//Receive Response
+	Response res = uc->RecieveResponse();
+	cout << res.message << endl;
+
+	if (!res.isSuccess) 
+	{
+		uc->CloseConnection();
+		return;
+	}
+
+
+	FileHelper * fh = new FileHelper("\\client_data\\");
+	char dataStream[RESP_LENGTH];
+	memset(dataStream, '\0', sizeof(dataStream));
+	Data data;
+	long pos = 0;
+	while (1)
+	{
+		bool lastPacket = !fh->ReadFile(req.filename, pos, dataStream);
+		strcpy(data.content, dataStream);
+		data.isLastPacket = lastPacket;
+		uc->SendData(data);
+		cout << "File read:" << strlen(dataStream) << " bytes" << endl;
+		if (lastPacket)
+		{
+			break;
+		}
+		pos += strlen(dataStream);
+	}
+
+	uc->CloseConnection();
 }
 
 void FTPClient::del()
