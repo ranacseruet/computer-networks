@@ -114,18 +114,21 @@ void FTPClient::put()
 
 	FileHelper * fh = new FileHelper("\\client_data\\");
 	char dataStream[RESP_LENGTH];
-	memset(dataStream, '\0', sizeof(dataStream));
+	memset(dataStream, '\0', RESP_LENGTH);
 	Data data;
 	long pos = 0;
 	while (1)
 	{
+		memset(dataStream, '\0', RESP_LENGTH);
 		bool lastPacket = !fh->ReadFile(req.filename, pos, dataStream);
 		strcpy(data.content, dataStream);
 		data.isLastPacket = lastPacket;
 		uc->SendData(data);
 		cout << "File read:" << strlen(dataStream) << " bytes" << endl;
+		cout << "Content: " << dataStream << endl;
 		if (lastPacket)
 		{
+			cout << "This was last packet"<<endl;
 			break;
 		}
 		pos += strlen(dataStream);

@@ -91,6 +91,7 @@ void FTPServer::get(Request request)
 	long pos = 0;
 	while (1)
 	{
+		memset(dataStream, '\0', RESP_LENGTH);
 		bool lastPacket = !fileHelper->ReadFile(request.filename, pos, dataStream);
 		strcpy(data.content, dataStream);
 		data.isLastPacket = lastPacket;
@@ -128,20 +129,18 @@ void FTPServer::put(Request request)
 		return;
 	}
 
-	//send data
-	char dataStream[RESP_LENGTH];
-	memset(dataStream, '\0', sizeof(dataStream));
+	//recieve data
 	Data data;
 	long pos = 0;
-	while (1)
+	while (true)
 	{
-		strcpy(data.content, dataStream);
 		data = udpServer->RecieveData();
 		fileHelper->WriteFile(request.filename, data.content);
-		cout << "File data recieved:" << strlen(dataStream) << " bytes" << endl;
+		cout << "File data recieved:" << strlen(data.content) << " bytes" << endl;
 
 		if (data.isLastPacket)
 		{
+			cout << "This was last packet" << endl;
 			break;
 		}
 	}

@@ -191,6 +191,7 @@ public:
 			fileReader.read(buffer, RESP_LENGTH);
 		}
 		fileReader.close();
+		cout << "last packet status: " << (strlen(buffer) == RESP_LENGTH);
 		return (strlen(buffer) == RESP_LENGTH);
 	}
 
