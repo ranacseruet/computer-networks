@@ -170,7 +170,7 @@ public:
 		return (_stat(fullPath, &stat_buf) == 0);
 	}
 
-	bool ReadFile(char fileName[FILENAME_MAX], long pos, char buffer[RESP_LENGTH])
+	bool ReadFile(char fileName[FILENAME_MAX], long pos, char *buffer)
 	{
 		char fullPath[FILENAME_MAX];
 		buildFullFilePath(fullPath, fileName);
@@ -191,8 +191,8 @@ public:
 			fileReader.read(buffer, RESP_LENGTH);
 		}
 		fileReader.close();
-		cout << "last packet status: " << (strlen(buffer) == RESP_LENGTH);
-		return (strlen(buffer) == RESP_LENGTH);
+		cout << "last packet status: " << (strlen(buffer) >= RESP_LENGTH);
+		return (strlen(buffer) >= RESP_LENGTH);
 	}
 
 	void WriteFile(char fileName[FILENAME_MAX], char buffer[RESP_LENGTH])
