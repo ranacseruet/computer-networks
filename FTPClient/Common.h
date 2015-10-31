@@ -204,4 +204,19 @@ public:
 		myFile.close();
 		return;
 	}
+
+	bool DeleteFile(char fileName[FILENAME_MAX])
+	{
+		char fullPath[FILENAME_MAX];
+		buildFullFilePath(fullPath, fileName);
+		return (remove(fullPath) == 0);
+	}
+
+	bool RenameFile(char orginalFileName[FILENAME_MAX], char newFileName[FILENAME_MAX])
+	{
+		char fullPath[FILENAME_MAX], newFullPath[FILENAME_MAX];
+		buildFullFilePath(fullPath, orginalFileName);
+		buildFullFilePath(newFullPath, newFileName);
+		return (rename(fullPath, newFullPath) == 0);
+	}
 };

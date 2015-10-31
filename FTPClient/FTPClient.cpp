@@ -172,10 +172,14 @@ void FTPClient::rename()
 	memset(&req, '\0', sizeof(req));
 
 	//taking input for sending file
-	string fileName;
-	cout << "Type file name to be renamed:    (Format: formFileName_Space_toFileName)" << endl;
+	string fileName, newFileName;
+	cout << "Type file name to be renamed:" << endl;
 	getline(cin, fileName);
 	strcpy(req.filename, fileName.c_str());
+
+	cout << "Type new name for the file :" << endl;
+	getline(cin, newFileName);
+	strcpy(req.renamedFileName, newFileName.c_str());
 
 	req.type = REQ_RENAME;
 	req.handshake.seq = handshake_value;

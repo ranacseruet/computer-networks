@@ -32,10 +32,13 @@ void FTPServer::run()
 			break;
 		case REQ_PUT:
 			put(request);
+			break;
 		case REQ_RENAME:
 			rename(request);
+			break;
 		case REQ_DELETE:
 			del(request);
+			break;
 		default:
 			break;
 		}
@@ -149,12 +152,56 @@ void FTPServer::put(Request request)
 
 void FTPServer::del(Request request)
 {
-	//TODO
+	Response response;
+	memset(&response, '\0', sizeof(response));
+
+	if (fileHelper->DoesFileExist(request.filename))
+	{
+		if (fileHelper->DeleteFile(request.filename))
+		{
+			response.isSuccess = true;
+			strcpy(response.message, "File successfully deleted");
+		}
+		else
+		{
+			strcpy(response.message, "File exist, but couldn't be deleted");
+			response.isSuccess = false;
+		}
+	}
+	else
+	{
+		strcpy(response.message, "File does not exist");
+		response.isSuccess = false;
+	}
+
+	udpServer->SendResponse(response);
 }
 
 void FTPServer::rename(Request request)
 {
-	//TODO
+	Response response;
+	memset(&response, '\0', sizeof(response));
+
+	if (fileHelper->DoesFileExist(request.filename))
+	{
+		if (fileHelper->RenameFile(request.filename, request.renamedFileName))
+		{
+			response.isSuccess = true;
+			strcpy(response.message, "File successfully renamed");
+		}
+		else
+		{
+			strcpy(response.message, "File exist, but couldn't be renamed");
+			response.isSuccess = false;
+		}
+	}
+	else
+	{
+		strcpy(response.message, "File does not exist");
+		response.isSuccess = false;
+	}
+
+	udpServer->SendResponse(response);
 }
 
 int main(void)
