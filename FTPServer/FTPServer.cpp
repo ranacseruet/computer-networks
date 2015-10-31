@@ -32,6 +32,10 @@ void FTPServer::run()
 			break;
 		case REQ_PUT:
 			put(request);
+		case REQ_RENAME:
+			rename(request);
+		case REQ_DELETE:
+			del(request);
 		default:
 			break;
 		}
@@ -142,6 +146,16 @@ void FTPServer::put(Request request)
 		}
 	}
 	logger->Log("\nFile data recieving complete");
+}
+
+void FTPServer::del(Request request)
+{
+	//TODO
+}
+
+void FTPServer::rename(Request request)
+{
+	//TODO
 }
 
 int main(void)

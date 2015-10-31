@@ -14,7 +14,8 @@ public:
 
 	void get(Request);
 	void put(Request);
-	void del(void);
+	void del(Request);
+	void rename(Request);
 	void list(Request);
 	void handshake(void);
 };
