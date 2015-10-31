@@ -13,8 +13,9 @@ public:
 	void run(void);
 
 	void get(Request);
-	void put(void);
-	void del(void);
+	void put(Request);
+	void del(Request);
+	void rename(Request);
 	void list(Request);
 	void handshake(void);
 };

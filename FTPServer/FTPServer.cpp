@@ -30,6 +30,12 @@ void FTPServer::run()
 		case REQ_GET:
 			get(request);
 			break;
+		case REQ_PUT:
+			put(request);
+		case REQ_RENAME:
+			rename(request);
+		case REQ_DELETE:
+			del(request);
 		default:
 			break;
 		}
@@ -67,7 +73,7 @@ void FTPServer::get(Request request)
 	}
 	else
 	{
-		strcpy(response.message, "File exist");
+		strcpy(response.message, "File found. Server is going to send data");
 		response.isSuccess = true;
 	}
 	udpServer->SendResponse(response);
@@ -89,19 +95,67 @@ void FTPServer::get(Request request)
 		strcpy(data.content, dataStream);
 		data.isLastPacket = lastPacket;
 		udpServer->SendData(data);
-		cout << data.content;
+		cout << "File read:" << strlen(dataStream) << " bytes" << endl;
 		if (lastPacket)
 		{
-			cout << "File read completed: " << strlen(dataStream) << " bytes" << endl;
 			break;
-		}
-		else
-		{
-			cout << "File read:"<< strlen(dataStream) <<" bytes" << endl;
 		}
 		pos += strlen(dataStream);
 	}
-	logger->Log("\nFile data sending complete");
+	logger->Log("\nFile sending complete");
+}
+
+void FTPServer::put(Request request)
+{
+	//1. Send success/failure response
+	Response response;
+	memset(&response, '\0', sizeof(response));
+	if (fileHelper->DoesFileExist(request.filename))
+	{
+		strcpy(response.message, "File already exist. Delete that first");
+		response.isSuccess = false;
+	}
+	else
+	{
+		strcpy(response.message, "Server is ready to recieve data");
+		response.isSuccess = true;
+	}
+	udpServer->SendResponse(response);
+
+	if (!response.isSuccess)
+	{
+		//no data to send
+		return;
+	}
+
+	//send data
+	char dataStream[RESP_LENGTH];
+	memset(dataStream, '\0', sizeof(dataStream));
+	Data data;
+	long pos = 0;
+	while (1)
+	{
+		strcpy(data.content, dataStream);
+		data = udpServer->RecieveData();
+		//TODO Write file
+		cout << "File data recieved:" << strlen(dataStream) << " bytes" << endl;
+
+		if (data.isLastPacket)
+		{
+			break;
+		}
+	}
+	logger->Log("\nFile data recieving complete");
+}
+
+void FTPServer::del(Request request)
+{
+	//TODO
+}
+
+void FTPServer::rename(Request request)
+{
+	//TODO
 }
 
 int main(void)

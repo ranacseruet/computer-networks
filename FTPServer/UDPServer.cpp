@@ -122,6 +122,21 @@ bool UDPServer::SendData(Data data)
 	return true;
 }
 
+Data UDPServer::RecieveData() {
+
+	Data data;
+	int fromLength = sizeof(client);
+
+	//try to receive some data, this is a blocking call
+	if (recvfrom(s, (char *)&data, BUFFER_LENGTH, 0, (struct sockaddr *) &client, &fromLength) == SOCKET_ERROR)
+	{
+		printf("recvfrom() failed with error code : %d", WSAGetLastError());
+		return data;
+	}
+
+	return data;
+};
+
 /*int main(void)
 {
 	UDPServer* server = new UDPServer(0);
