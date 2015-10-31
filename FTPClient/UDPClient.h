@@ -15,10 +15,13 @@ private:
 public:
 	UDPClient();
 	~UDPClient();
-	void SetHostName(char[]);
 	void CreateConnection();
+	void CloseConnection();
+
+	void SetHostName(char[]);
+	
 	bool SendRequest(Request);
-	bool SendDatat(Data data);
+	bool SendData(Data data);
 
 	void run(void);
 

@@ -17,9 +17,7 @@ void FTPClient::list()
 {
 	int handshake_value = handshake();
 
-	
 	memset(&req, '\0', sizeof(req));
-
 	//creating request object for listing
 	std::string s = "";
 	strcpy(req.filename, s.c_str());
@@ -33,6 +31,27 @@ void FTPClient::list()
 	//Receive Request
 	Response res = uc->RecieveResponse();
 	cout << res.message << endl;
+
+	Data resData;
+	ofstream myFile(s, ios::out | ios::binary);
+	while (true) 
+	{
+		resData = uc->RecieveData();
+
+		if (resData.isLastPacket) {
+
+			myFile.write(resData.content, sizeof(resData.content));
+			cout << "Last Packet Received." << endl;
+			break;
+		}
+		else {
+			myFile.write(resData.content, sizeof(resData.content));
+		}
+
+		myFile.close();
+	}
+
+	uc->CloseConnection();
 }
 
 void FTPClient::get()
@@ -85,6 +104,7 @@ void FTPClient::del()
 	//Receive Response
 	Response res = uc->RecieveResponse();
 	cout << res.message << endl;
+	uc->CloseConnection();
 }
 
 void FTPClient::rename()
@@ -109,6 +129,7 @@ void FTPClient::rename()
 	//Receive Response
 	Response res = uc->RecieveResponse();
 	cout << res.message << endl;
+	uc->CloseConnection();
 }
 
 void FTPClient::showMenu() 

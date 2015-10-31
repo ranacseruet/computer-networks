@@ -62,9 +62,13 @@ void UDPClient::CreateConnection()
 	}
 }
 
+void UDPClient::CloseConnection() 
+{
+	closesocket(handle);
+}
+
 bool UDPClient::SendRequest(Request req)
 {	
-	CreateConnection();
 	char buffer[BUFFER_LENGTH];
 	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &req, sizeof(req));
@@ -80,10 +84,26 @@ bool UDPClient::SendRequest(Request req)
 	return true;
 };
 
+bool UDPClient::SendData(Data data) {
+
+	char buffer[BUFFER_LENGTH+20];
+	memset(buffer, '\0', BUFFER_LENGTH+20);
+	memcpy(buffer, &data, sizeof(data));
+
+	int sent_bytes = sendto(handle, (char *)buffer, sizeof(data), 0, (sockaddr*)&address, sizeof(sockaddr_in));
+
+	if (sent_bytes != sizeof(data))
+	{
+		printf("failed to send packet. Sent bytes %d\n", sent_bytes);
+		return false;
+	}
+
+	return true;;
+};
+
 Response UDPClient::RecieveResponse() 
 {
 	Response ptr;
-	char buffer[BUFFER_LENGTH];
 	int fromLength = sizeof(address);
 
 	//try to receive some data, this is a blocking call
@@ -93,16 +113,23 @@ Response UDPClient::RecieveResponse()
 		return ptr;
 	}
 
-	closesocket(handle);
 	return ptr;
 };
 
+Data UDPClient::RecieveData() {
 
-bool UDPClient::SendDatat(Data data)
-{
-	return true;
+	Data data;
+	int fromLength = sizeof(address);
+
+	//try to receive some data, this is a blocking call
+	if (recvfrom(handle, (char *)&data, BUFFER_LENGTH, 0, (struct sockaddr *) &address, &fromLength) == SOCKET_ERROR)
+	{
+		printf("recvfrom() failed with error code : %d", WSAGetLastError());
+		return data;
+	}
+	
+	return data;
 };
-
 
 void UDPClient::run()
 {
