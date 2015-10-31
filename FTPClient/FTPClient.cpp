@@ -5,7 +5,7 @@ using namespace std;
 FTPClient::FTPClient()
 {
 	uc = new UDPClient();
-	uc->SetHostName("valo-virus");
+	uc->SetHostName("MDALIRANAEDAF");
 }
 
 int FTPClient::handshake()
@@ -64,19 +64,14 @@ void FTPClient::get()
 	while (true)
 	{
 		resData = uc->RecieveData();
+		myFile.write(resData.content, sizeof(resData.content));
 
 		if (resData.isLastPacket) {
-
-			myFile.write(resData.content, sizeof(resData.content));
 			cout << "Last Packet Received." << endl;
 			break;
 		}
-		else {
-			myFile.write(resData.content, sizeof(resData.content));
-		}
-
-		myFile.close();
 	}
+	myFile.close();
 
 	uc->CloseConnection();
 }
