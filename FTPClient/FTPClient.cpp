@@ -5,7 +5,7 @@ using namespace std;
 FTPClient::FTPClient()
 {
 	uc = new UDPClient();
-	uc->SetHostName("MDALIRANAEDAF");
+	uc->SetHostName("valo-virus");
 }
 
 int FTPClient::handshake()
@@ -16,7 +16,7 @@ int FTPClient::handshake()
 void FTPClient::list() 
 {
 	int handshake_value = handshake();
-
+	
 	memset(&req, '\0', sizeof(req));
 	//creating request object for listing
 	std::string s = "";
@@ -26,31 +26,12 @@ void FTPClient::list()
 	req.handshake.seq = handshake_value;
 
 	//sending list request
+	uc->CreateConnection();
 	uc->SendRequest(req);
 
 	//Receive Request
 	Response res = uc->RecieveResponse();
 	cout << res.message << endl;
-
-	Data resData;
-	ofstream myFile(s, ios::out | ios::binary);
-	while (true) 
-	{
-		resData = uc->RecieveData();
-
-		if (resData.isLastPacket) {
-
-			myFile.write(resData.content, sizeof(resData.content));
-			cout << "Last Packet Received." << endl;
-			break;
-		}
-		else {
-			myFile.write(resData.content, sizeof(resData.content));
-		}
-
-		myFile.close();
-	}
-
 	uc->CloseConnection();
 }
 
@@ -69,13 +50,33 @@ void FTPClient::get()
 	req.handshake.seq = handshake_value;
 
 	//sending list request
+	uc->CreateConnection();
 	uc->SendRequest(req);
 
 	//Receive Response
 	Response res = uc->RecieveResponse();
 	cout << res.message<<endl;
 
-	//TODO check status and recieve data if success
+	Data resData;
+	ofstream myFile(s, ios::out | ios::binary);
+	while (true)
+	{
+		resData = uc->RecieveData();
+
+		if (resData.isLastPacket) {
+
+			myFile.write(resData.content, sizeof(resData.content));
+			cout << "Last Packet Received." << endl;
+			break;
+		}
+		else {
+			myFile.write(resData.content, sizeof(resData.content));
+		}
+
+		myFile.close();
+	}
+
+	uc->CloseConnection();
 }
 
 void FTPClient::put()
@@ -99,6 +100,7 @@ void FTPClient::del()
 	req.handshake.seq = handshake_value;
 
 	//sending list request
+	uc->CreateConnection();
 	uc->SendRequest(req);
 
 	//Receive Response
@@ -124,6 +126,7 @@ void FTPClient::rename()
 	req.handshake.seq = handshake_value;
 
 	//sending list request
+	uc->CreateConnection();
 	uc->SendRequest(req);
 
 	//Receive Response
@@ -194,8 +197,8 @@ void FTPClient::showMenu()
 int main() 
 {
 	FTPClient * fc = new FTPClient();
+
 	cout << "Type name of ftp server: " << endl;
-	//cin.getline(serverIpAdd, 256);
 	
 	while (1)
 	{

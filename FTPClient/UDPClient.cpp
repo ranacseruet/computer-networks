@@ -138,8 +138,6 @@ void UDPClient::run()
 	memset(&req, '\0', sizeof(req));
 	//req.type = 1;
 	UDPClient::SendRequest(req);
-		
-	
 }
 
 /*
