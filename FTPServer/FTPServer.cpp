@@ -137,7 +137,7 @@ void FTPServer::put(Request request)
 	{
 		strcpy(data.content, dataStream);
 		data = udpServer->RecieveData();
-		//TODO Write file
+		fileHelper->WriteFile(request.filename, data.content);
 		cout << "File data recieved:" << strlen(dataStream) << " bytes" << endl;
 
 		if (data.isLastPacket)

@@ -75,6 +75,10 @@ void FTPClient::get()
 			cout << "Last Packet Received." << endl;
 			break;
 		}
+		else
+		{
+			cout << "Data Received: "  << strlen(resData.content)<< " bytes."<< endl;
+		}
 	}
 	uc->CloseConnection();
 }

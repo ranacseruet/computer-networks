@@ -199,7 +199,7 @@ public:
 		char fullPath[FILENAME_MAX];
 		buildFullFilePath(fullPath, fileName);
 		ofstream myFile(fullPath, ios::out | ios::binary | ios::app);
-		myFile.write(buffer, sizeof(buffer));
+		myFile.write(buffer, strlen(buffer));
 		myFile.close();
 		return;
 	}
