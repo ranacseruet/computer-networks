@@ -43,8 +43,10 @@ void FTPClient::get()
 	memset(&req, '\0', sizeof(req));
 
 	//TODO take user input and set
-	std::string s = "server_log.txt";
-	strcpy(req.filename, s.c_str());
+	string fileName;
+	cout << "Type the name of file to be download: " << endl;
+	getline(cin, fileName);
+	strcpy(req.filename, fileName.c_str());
 
 	req.type = REQ_GET;
 	req.handshake.seq = handshake_value;
@@ -58,7 +60,7 @@ void FTPClient::get()
 	cout << res.message<<endl;
 
 	Data resData;
-	ofstream myFile(s, ios::out | ios::binary);
+	ofstream myFile(fileName, ios::out | ios::binary);
 	while (true)
 	{
 		resData = uc->RecieveData();
@@ -81,6 +83,20 @@ void FTPClient::get()
 
 void FTPClient::put()
 {
+	int handshake_value = handshake();
+	memset(&req, '\0', sizeof(req));
+
+	string fileName;
+	cout << "Type name of file to be sent: " << endl;
+	getline(cin, fileName);
+	strcpy(req.filename, fileName.c_str());
+
+	req.type = REQ_PUT;
+	req.handshake.seq = handshake_value;
+
+	//sending list request
+	uc->CreateConnection();
+	uc->SendRequest(req);
 }
 
 void FTPClient::del()
@@ -102,6 +118,7 @@ void FTPClient::del()
 	//sending list request
 	uc->CreateConnection();
 	uc->SendRequest(req);
+
 
 	//Receive Response
 	Response res = uc->RecieveResponse();
