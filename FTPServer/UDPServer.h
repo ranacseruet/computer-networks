@@ -8,7 +8,6 @@ public:
 	UDPServer(Logger*);
 	~UDPServer(void);
 
-	void run(void);
 	bool SendResponse(Response data);
 	bool RecieveRequest(Request*);
 };

@@ -9,7 +9,7 @@ using namespace std;
 UDPServer::UDPServer(Logger* log) :UDP()
 {
 	logger = log;
-	createAndBindSocketConnection(&server);
+	createAndBindSocketConnection(&server, SERVER_PORT);
 }
 
 UDPServer::~UDPServer()
@@ -55,4 +55,14 @@ bool UDPServer::SendResponse(Response response)
 	logger->Log("Sent response. Message: " + string(response.message));
 
 	return true;
+}
+
+bool UDP::SendData(Data data)
+{
+	return sendData(data, &client);
+}
+
+Data UDP::RecieveData()
+{
+	return recieveData(&client);
 }
