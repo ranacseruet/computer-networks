@@ -13,7 +13,7 @@ public:
 	void run(void);
 
 	void get(Request);
-	void put(void);
+	void put(Request);
 	void del(void);
 	void list(Request);
 	void handshake(void);
