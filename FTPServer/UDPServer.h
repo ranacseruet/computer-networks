@@ -1,22 +1,14 @@
-#include "../FTPClient/Common.h"
+#include "../FTPClient/UDP.h"
 
-public class UDPServer
+public class UDPServer: public UDP
 {
 private:
-	char serverName[HOSTNAME_LENGTH];
-	struct sockaddr_in server, client;
-	SOCKET s;
-	WSADATA wsa;
 	Logger *logger;
 public:
 	UDPServer(Logger*);
 	~UDPServer(void);
 
 	void run(void);
-
-	bool SendData(Data data);
 	bool SendResponse(Response data);
-
 	bool RecieveRequest(Request*);
-	Data RecieveData();
 };

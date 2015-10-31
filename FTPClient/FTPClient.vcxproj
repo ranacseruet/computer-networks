@@ -14,6 +14,7 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="FTPClient.h" />
+    <ClInclude Include="UDP.h" />
     <ClInclude Include="UDPClient.h" />
   </ItemGroup>
   <ItemGroup>
