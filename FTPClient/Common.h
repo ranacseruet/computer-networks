@@ -170,9 +170,10 @@ public:
 		return (_stat(fullPath, &stat_buf) == 0);
 	}
 
-	bool ReadFile(char fileName[FILENAME_MAX], long pos, char *buffer)
+	bool ReadFile(char fileName[FILENAME_MAX], long pos, char *buffer, int *numOfBytesRead)
 	{
 		char fullPath[FILENAME_MAX];
+		bool endOfFile;
 		buildFullFilePath(fullPath, fileName);
 		
 		if (!DoesFileExist(fileName))
@@ -190,9 +191,10 @@ public:
 			/* Read the contents of file and write into the buffer for transmission */
 			fileReader.read(buffer, RESP_LENGTH);
 		}
+		*numOfBytesRead = fileReader.gcount();
+		endOfFile = fileReader.eof();
 		fileReader.close();
-		cout << "last packet status: " << (strlen(buffer) >= RESP_LENGTH);
-		return (strlen(buffer) >= RESP_LENGTH);
+		return !endOfFile;
 	}
 
 	void WriteFile(char fileName[FILENAME_MAX], char buffer[RESP_LENGTH])
@@ -200,7 +202,7 @@ public:
 		char fullPath[FILENAME_MAX];
 		buildFullFilePath(fullPath, fileName);
 		ofstream myFile(fullPath, ios::out | ios::binary | ios::app);
-		myFile.write(buffer, strlen(buffer));
+		myFile.write(buffer, RESP_LENGTH);
 		myFile.close();
 		return;
 	}

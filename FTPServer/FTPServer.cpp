@@ -92,21 +92,24 @@ void FTPServer::get(Request request)
 	memset(dataStream, '\0', sizeof(dataStream));
 	Data data;
 	long pos = 0;
+	int numOfBytesRead = 0;
 	while (1)
 	{
 		memset(dataStream, '\0', RESP_LENGTH);
-		bool lastPacket = !fileHelper->ReadFile(request.filename, pos, dataStream);
-		strcpy(data.content, dataStream);
+		memset(data.content, '\0', RESP_LENGTH);
+		bool lastPacket = !fileHelper->ReadFile(request.filename, pos, dataStream, &numOfBytesRead);
+		memcpy(data.content, dataStream, RESP_LENGTH);
 		data.isLastPacket = lastPacket;
 		udpServer->SendData(data);
-		cout << "File read:" << strlen(dataStream) << " bytes" << endl;
+		//cout << "File read:" << strlen(dataStream) << " bytes" << endl;
 		if (lastPacket)
 		{
 			break;
 		}
-		pos += strlen(dataStream);
+		pos += numOfBytesRead;
 	}
-	logger->Log("\nFile sending complete");
+	logger->Log("\nFile sending complete. Total Bytes: ");
+	cout << pos << endl;
 }
 
 void FTPServer::put(Request request)

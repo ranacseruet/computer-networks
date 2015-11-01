@@ -7,6 +7,12 @@ protected:
 	struct sockaddr_in server, client;
 	SOCKET socketHandle;
 
+	typedef struct
+	{
+		Handshake hs;
+		char content[RESP_LENGTH];
+	}UDPPacket;
+
 	UDP(void)
 	{
 		WSADATA wsa;
@@ -58,7 +64,7 @@ protected:
 			return false;
 		}
 		//printf("Sent response. Message: %s\n", response.message);
-		cout<<"Sent data. content: " <<data.content;
+		//cout<<"Sent data. content: " <<data.content;
 		return true;
 	}
 
@@ -78,6 +84,8 @@ protected:
 		}
 		return data;
 	};
+
+
 
 public:
 	virtual bool SendData(Data data);
