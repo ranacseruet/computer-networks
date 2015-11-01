@@ -2,15 +2,25 @@
 
 public class UDP
 {
+private:
+	void printBinaryBuffer(char buffer[], int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			cout << buffer[i];
+		}
+		cout << endl;
+	}
 protected:
 
 //----- Making these protected as outside of derived classes shouldn't know about this
-#define PACKET_LENGTH 180
+#define PACKET_LENGTH 20
 	typedef struct
 	{
 		Handshake hs;
 		char content[PACKET_LENGTH];
 		bool isLast;
+		int sequence;
 	}UDPPacket;
 //----- UDP packet specific settings
 
@@ -60,9 +70,39 @@ protected:
 	{
 		UDPPacket packet;
 		memset(packet.content, '\0', PACKET_LENGTH);
-		memcpy(packet.content, &data, sizeof(data));
+		if (PACKET_LENGTH >= sizeof(Data))
+		{
+			//can be sent in one single packet
+			memcpy(packet.content, &data, sizeof(data));
+			sendUDPPacket(packet, to);
+		}
+		else
+		{
+			//split data into multiple packets and send
+			char buffer[sizeof(Data)];
+			memset(buffer, '\0', sizeof(Data));
+			memcpy(buffer, &data, sizeof(Data));
+			int numOfPacketsToToSend = (int)(sizeof(data) / PACKET_LENGTH) + 1;
+			int dataOffset = 0;
+			for (int i = 0; i < numOfPacketsToToSend; i++)
+			{
+				packet.sequence = i;
+				memset(packet.content, '\0', PACKET_LENGTH);
+				
+				int copySize = PACKET_LENGTH;
+				if ((sizeof(Data) - dataOffset) < PACKET_LENGTH)
+				{
+					copySize = (sizeof(Data) - dataOffset);
+				}
+				memcpy(packet.content, buffer+dataOffset, copySize);
+				//copyBinaryBuffer(packet.content, buffer + dataOffset, 0, copySize);
+				sendUDPPacket(packet, to);
+				//cout << "Sent Packet " << i << ". Size: " << copySize << endl;
+				//printBinaryBuffer(packet.content, copySize);
+				dataOffset += copySize;
+			}
 
-		sendUDPPacket(packet, to);
+		}
 
 		return true;
 	}
@@ -71,8 +111,39 @@ protected:
 	{
 
 		Data* data;
-		UDPPacket packet = recieveUDPPacket(from);
-		data = (Data *)packet.content;
+		UDPPacket packet;
+		if (PACKET_LENGTH >= sizeof(Data))
+		{
+			//can be recieved as one single packet
+			packet = recieveUDPPacket(from);
+			data = (Data *)packet.content;
+		}
+		else
+		{
+			char buffer[sizeof(Data)];
+			memset(buffer, '\0', sizeof(Data));
+			int numOfPacketsToRecieve = (int)(sizeof(Data) / PACKET_LENGTH) + 1;
+			int bufferOffset = 0;
+			cout << "Waiting for Packets# " << numOfPacketsToRecieve << endl;
+			for (int i = 0; i < numOfPacketsToRecieve; i++)
+			{
+				//recieve packets and add to data references
+				memset(packet.content, '\0', PACKET_LENGTH);
+				packet = recieveUDPPacket(from);
+				int copySize = PACKET_LENGTH;
+				if ((sizeof(Data) - bufferOffset) < PACKET_LENGTH)
+				{
+					copySize = (sizeof(Data) - bufferOffset);
+				}
+				memcpy((void *)(buffer + bufferOffset), packet.content, copySize);
+				bufferOffset += copySize;
+				//cout << "Recieved Packet " << packet.sequence <<"Size: "<<copySize<< endl;
+				//printBinaryBuffer(packet.content, PACKET_LENGTH);
+			}
+			//printBinaryBuffer(buffer, sizeof(Data));
+			data = (Data *)buffer;
+			cout << data->content<<endl;
+		}
 		return *data;
 	};
 

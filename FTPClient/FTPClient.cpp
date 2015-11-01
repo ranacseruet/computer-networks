@@ -268,7 +268,7 @@ int main()
 	FTPClient * fc = new FTPClient();
 	fc->run();
 	/*Data data;
-	strcpy(data.content, "Hello World");
+	strcpy(data.content, "Hello World With Content Greater than 20 bytes");
 	UDPClient *udpClient = new UDPClient();
 	udpClient->SetHostName("MDALIRANAEDAF");
 	udpClient->CreateConnection();
