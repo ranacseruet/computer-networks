@@ -216,6 +216,9 @@ int main(void)
 	FTPServer *ftpServer = new FTPServer(server, helper, logger);
 	ftpServer->run();
 
+	//Data data = server->RecieveData();
+	//cout << data.content<<endl;
+
 	int i;
 	cin >> i;
 	return 0;

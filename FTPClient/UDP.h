@@ -3,15 +3,21 @@
 public class UDP
 {
 protected:
-	char serverName[HOSTNAME_LENGTH];
-	struct sockaddr_in server, client;
-	SOCKET socketHandle;
 
+//----- Making these protected as outside of derived classes shouldn't know about this
+#define PACKET_LENGTH 180
 	typedef struct
 	{
 		Handshake hs;
-		char content[RESP_LENGTH];
+		char content[PACKET_LENGTH];
+		bool isLast;
 	}UDPPacket;
+//----- UDP packet specific settings
+
+
+	char serverName[HOSTNAME_LENGTH];
+	struct sockaddr_in server, client;
+	SOCKET socketHandle;
 
 	UDP(void)
 	{
@@ -52,40 +58,58 @@ protected:
 
 	bool sendData(Data data, sockaddr_in *to)
 	{
-		char buffer[BUFFER_LENGTH];
-		memset(buffer, '\0', BUFFER_LENGTH);
-		memcpy(buffer, &data, sizeof(data));
+		UDPPacket packet;
+		memset(packet.content, '\0', PACKET_LENGTH);
+		memcpy(packet.content, &data, sizeof(data));
 
-		int sent_bytes = sendto(socketHandle, (char *)buffer, sizeof(data), 0, (sockaddr*)to, sizeof(sockaddr_in));
+		sendUDPPacket(packet, to);
 
-		if (sent_bytes != sizeof(data))
-		{
-			printf("failed sending data to. Sent bytes %d\n", sent_bytes);
-			return false;
-		}
-		//printf("Sent response. Message: %s\n", response.message);
-		//cout<<"Sent data. content: " <<data.content;
 		return true;
 	}
 
-	Data recieveData(sockaddr_in *from) {
+	Data recieveData(sockaddr_in *from) 
+	{
 
-		Data data;
-		memset(&data, '\0', sizeof(data));
+		Data* data;
+		UDPPacket packet = recieveUDPPacket(from);
+		data = (Data *)packet.content;
+		return *data;
+	};
+
+	UDPPacket recieveUDPPacket(sockaddr_in *from)
+	{
+		UDPPacket p;
+
+		memset(&p, '\0', sizeof(p));
 
 		int fromLength = sizeof(sockaddr_in);
 
 		//try to receive some data, this is a blocking call
-		if (recvfrom(socketHandle, (char *)&data, BUFFER_LENGTH, 0, (struct sockaddr *)from, &fromLength) == SOCKET_ERROR)
+		if (recvfrom(socketHandle, (char *)&p, sizeof(UDPPacket), 0, (struct sockaddr *)from, &fromLength) == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
-			data.isLastPacket = true;
-			return data;
+			p.isLast = true;
+			return p;
 		}
-		return data;
-	};
 
+		return p;
+	}
 
+	bool sendUDPPacket(UDPPacket p, sockaddr_in *to)
+	{
+		char buffer[sizeof(UDPPacket)];
+		memset(buffer, '\0', sizeof(UDPPacket));
+		memcpy(buffer, &p, sizeof(p));
+
+		int sent_bytes = sendto(socketHandle, (char *)buffer, sizeof(UDPPacket), 0, (sockaddr*)to, sizeof(sockaddr_in));
+
+		if (sent_bytes != sizeof(p))
+		{
+			printf("failed sending data to. Sent bytes %d\n", sent_bytes);
+			return false;
+		}
+		return true;
+	}
 
 public:
 	virtual bool SendData(Data data);

@@ -41,31 +41,6 @@ void UDPClient::CreateConnection()
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = getAddressByHost(serverName);
 	server.sin_port = htons(SERVER_PORT);
-
-	/*socketHandle = socket(AF_INET, SOCK_DGRAM, 0);
-
-	if (socketHandle <= 0)
-	{
-		printf("failed to create socket\n");
-	}
-
-	//sockaddr_in address;
-	int ServPort = 5001;
-	memset(&address, 0, sizeof(address));    
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = getAddressByHost(serverName);//"MDALIRANAEDAF"
-	address.sin_port = htons(ServPort);
-
-	//sockaddr_in myaddress;
-	myaddress.sin_family = AF_INET;
-	myaddress.sin_addr.s_addr = INADDR_ANY;
-	myaddress.sin_port = htons((unsigned short)0);
-
-
-	if (bind(handle, (const sockaddr*)&myaddress, sizeof(sockaddr_in)) < 0)
-	{
-		printf("failed to bind socket\n");
-	}*/
 }
 
 void UDPClient::CloseConnection() 

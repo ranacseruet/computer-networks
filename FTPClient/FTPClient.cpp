@@ -122,7 +122,6 @@ void FTPClient::put()
 		data.isLastPacket = lastPacket;
 		uc->SendData(data);
 		cout << "File read:" << strlen(dataStream) << " bytes" << endl;
-		cout << "Content: " << dataStream << endl;
 		if (lastPacket)
 		{
 			cout << "This was last packet"<<endl;
@@ -268,6 +267,15 @@ int main()
 {
 	FTPClient * fc = new FTPClient();
 	fc->run();
+	/*Data data;
+	strcpy(data.content, "Hello World");
+	UDPClient *udpClient = new UDPClient();
+	udpClient->SetHostName("MDALIRANAEDAF");
+	udpClient->CreateConnection();
+	udpClient->SendData(data);
+	udpClient->CloseConnection();*/
+	int i;
+	cin >> i;
 }
 
 FTPClient::~FTPClient()
