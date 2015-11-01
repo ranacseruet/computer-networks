@@ -9,5 +9,5 @@ public:
 	~UDPServer(void);
 
 	bool SendResponse(Response data);
-	bool RecieveRequest(Request*);
+	Request RecieveRequest();
 };

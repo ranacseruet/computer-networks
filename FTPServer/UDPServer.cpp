@@ -17,7 +17,7 @@ UDPServer::~UDPServer()
 	closesocket(socketHandle);
 }
 
-bool UDPServer::RecieveRequest(Request *req)
+Request UDPServer::RecieveRequest()
 {
 	int slen, recv_len;
 
@@ -27,15 +27,10 @@ bool UDPServer::RecieveRequest(Request *req)
 	printf("Waiting for Request...");
 	//fflush(stdout);
 
-	//try to receive some data, this is a blocking call
-	if ((recv_len = recvfrom(socketHandle, (char *)req, BUFFER_LENGTH, 0, (struct sockaddr *) &client, &slen)) == SOCKET_ERROR)
-	{
-		printf("recvfrom() failed with error code : %d", WSAGetLastError());
-		return false;
-	}
-	//char* type = itoa(req->type, type, 10);
-	logger->Log("Recieved a request. Request Type: ");
-	return true;
+	char buffer[sizeof(Request)];
+	recievePacketsToBuffer(buffer, sizeof(Request), &client);
+	Request *request = (Request *)buffer;
+	return *request;
 }
 
 bool UDPServer::SendResponse(Response response)
@@ -44,13 +39,7 @@ bool UDPServer::SendResponse(Response response)
 	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &response, sizeof(response));
 
-	int sent_bytes = sendto(socketHandle, (char *)buffer, sizeof(response), 0, (sockaddr*)&client, sizeof(sockaddr_in));
-
-	if (sent_bytes != sizeof(response))
-	{
-		printf("failed sending response to client. Sent bytes %d\n", sent_bytes);
-		return false;
-	}
+	splitAndSendAsPackets(buffer, sizeof(Response), &client);
 	//printf("Sent response. Message: %s\n", response.message);
 	logger->Log("Sent response. Message: " + string(response.message));
 

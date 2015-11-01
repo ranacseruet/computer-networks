@@ -54,30 +54,21 @@ bool UDPClient::SendRequest(Request req)
 	memset(buffer, '\0', BUFFER_LENGTH);
 	memcpy(buffer, &req, sizeof(req));
 	
-	int sent_bytes = sendto(socketHandle, (char *)buffer, sizeof(req), 0, (sockaddr*)&server, sizeof(sockaddr_in));
-
-	if (sent_bytes != sizeof(req))
-	{
-		printf("failed to send packet. Sent bytes %d\n", sent_bytes);
-		return false;
-	}
+	splitAndSendAsPackets(buffer, sizeof(Request), &server);
 
 	return true;
 };
 
 Response UDPClient::RecieveResponse() 
 {
-	Response ptr;
+	Response *ptr;
 	int fromLength = sizeof(server);
 
-	//try to receive some data, this is a blocking call
-	if (recvfrom(socketHandle, (char *)&ptr, BUFFER_LENGTH, 0, (struct sockaddr *) &server, &fromLength) == SOCKET_ERROR)
-	{
-		printf("recvfrom() failed with error code : %d", WSAGetLastError());
-		return ptr;
-	}
+	char buffer[sizeof(Response)];
+	recievePacketsToBuffer(buffer, sizeof(Response), &server);
+	ptr = (Response *)buffer;
 
-	return ptr;
+	return *ptr;
 };
 
 bool UDP::SendData(Data data)

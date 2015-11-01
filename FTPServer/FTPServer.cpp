@@ -15,13 +15,9 @@ void FTPServer::run()
 	while (1)
 	{
 		Request request;
-		bool success = udpServer->RecieveRequest(&request);
-		if (!success)
-		{
-			//error occured
-			break;
-		}
-
+		request = udpServer->RecieveRequest();
+		
+		cout << "Got request type: " << request.type;
 		switch (request.type)
 		{
 		case REQ_LIST:
@@ -60,6 +56,7 @@ void FTPServer::list(Request request)
 		strcpy(response.message, filesList.c_str());
 		response.isSuccess = true;
 	}
+	cout << "Here sending response" << endl;
 	udpServer->SendResponse(response);
 	logger->Log("Responsed to LIST operation");
 }
