@@ -5,12 +5,19 @@ public class UDP
 protected:
 	//----- Making these protected as outside of derived classes shouldn't know about this
 #define PACKET_LENGTH 190
+	typedef enum
+	{
+		PACKET_DATA=1,
+		PACKET_ACK=2
+	} PacketType;
+
 	typedef struct
 	{
 		Handshake hs;
 		char content[PACKET_LENGTH];
-		bool isLast;
 		int sequence;
+		PacketType type;
+		bool retrying;
 	}UDPPacket;
 	//----- UDP packet specific settings
 private:
@@ -35,8 +42,21 @@ private:
 		if (recvfrom(socketHandle, (char *)&p, sizeof(UDPPacket), 0, (struct sockaddr *)from, &fromLength) == SOCKET_ERROR)
 		{
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
-			p.isLast = true;
 			return p;
+		}
+		//Send ACK
+		if (p.type != PACKET_ACK)
+		{
+			//get acknowledgement
+			UDPPacket ackPack;
+			ackPack.type = PACKET_ACK;
+			ackPack.retrying = false;
+			ackPack.sequence = p.sequence + 1;
+			if (!sendUDPPacket(ackPack, from))
+			{
+				cout << "Couldn't send the acknowledgement!" << endl;
+			}
+
 		}
 
 		return p;
@@ -53,6 +73,27 @@ private:
 		if (sent_bytes != sizeof(p))
 		{
 			printf("failed sending data to. Sent bytes %d\n", sent_bytes);
+			return false;
+		}
+		if (p.type != PACKET_ACK && p.retrying != true)
+		{
+			int attempt = 5;//MAX ATTEMPT
+			while (attempt > 0)
+			{
+				//get acknowledgement
+				UDPPacket ackPack = recieveUDPPacket(to);
+				if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
+				{
+					//success ack
+					//cout << "Got and successfull acknowledgement!" << endl;
+					return true;
+				}
+				p.retrying = true;
+				sendUDPPacket(p, to);
+				attempt--;
+			}
+			//couldn't send at all
+			cout << "Couldn't get an successfull acknowledgement!" << endl;
 			return false;
 		}
 		return true;
@@ -125,12 +166,15 @@ protected:
 	void splitAndSendAsPackets(char *buffer, int size, sockaddr_in *to)
 	{
 		UDPPacket packet;
+		packet.type = PACKET_DATA;
+		packet.retrying = false;
 
 		if (PACKET_LENGTH >= size)
 		{
 			//can be sent in one single packet
 			memset(packet.content, '\0', PACKET_LENGTH);
 			memcpy(packet.content, buffer, size);
+			//TODO check packet status, if false return error
 			sendUDPPacket(packet, to);
 		}
 		else
@@ -149,6 +193,7 @@ protected:
 				}
 				memcpy(packet.content, buffer + dataOffset, copySize);
 				//copyBinaryBuffer(packet.content, buffer + dataOffset, 0, copySize);
+				//TODO check packet status, if false return error
 				sendUDPPacket(packet, to);
 				//cout << "Sent Packet " << i << ". Size: " << copySize << endl;
 				//printBinaryBuffer(packet.content, copySize);

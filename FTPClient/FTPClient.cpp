@@ -121,7 +121,7 @@ void FTPClient::put()
 		memcpy(data.content, dataStream, RESP_LENGTH);
 		data.isLastPacket = lastPacket;
 		uc->SendData(data);
-		cout << "File read:" << strlen(dataStream) << " bytes" << endl;
+		//cout << "File read:" << strlen(dataStream) << " bytes" << endl;
 		if (lastPacket)
 		{
 			cout << "This was last packet"<<endl;
@@ -222,6 +222,7 @@ void FTPClient::showMenu()
 		cin.ignore(250, '\n');
 	}
 	/* Based on the option selected by User, set the transfer type and invoke the appropriate function */
+	
 	switch (optionVal)
 	{
 	case 1:
