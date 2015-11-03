@@ -38,7 +38,7 @@ void FTPClient::list()
 	strcpy(req.filename, s.c_str());
 
 	req.type = REQ_LIST;
-	req.handshake.seq = handshake_value;
+	req.handshake.ack = handshake_value;
 
 	//sending list request
 	uc->CreateConnection();
@@ -64,7 +64,7 @@ void FTPClient::get()
 	strcpy(req.filename, fileName.c_str());
 
 	req.type = REQ_GET;
-	req.handshake.seq = handshake_value;
+	req.handshake.ack = handshake_value;
 
 	//sending list request
 	uc->CreateConnection();
@@ -105,7 +105,7 @@ void FTPClient::put()
 	strcpy(req.filename, fileName.c_str());
 
 	req.type = REQ_PUT;
-	req.handshake.seq = handshake_value;
+	req.handshake.ack = handshake_value;
 
 	
 	//sending list request
@@ -163,7 +163,7 @@ void FTPClient::del()
 	strcpy(req.filename, deleteFileName.c_str());
 
 	req.type = REQ_DELETE;
-	req.handshake.seq = handshake_value;
+	req.handshake.ack = handshake_value;
 
 	//sending list request
 	uc->CreateConnection();
@@ -194,7 +194,7 @@ void FTPClient::rename()
 	strcpy(req.renamedFileName, newFileName.c_str());
 
 	req.type = REQ_RENAME;
-	req.handshake.seq = handshake_value;
+	req.handshake.ack = handshake_value;
 
 	//sending list request
 	uc->CreateConnection();
