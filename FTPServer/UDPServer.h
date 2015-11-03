@@ -9,5 +9,8 @@ public:
 	~UDPServer(void);
 
 	bool SendResponse(Response data);
-	Request RecieveRequest();
+	Request RecieveRequest(int expectedAck);
+
+	Handshake recieveHandshakeRequest();
+	bool sendHandshakeResponse(Handshake);
 };

@@ -17,7 +17,7 @@ UDPServer::~UDPServer()
 	closesocket(socketHandle);
 }
 
-Request UDPServer::RecieveRequest()
+Request UDPServer::RecieveRequest(int expectedAck)
 {
 	int slen, recv_len;
 
@@ -30,6 +30,13 @@ Request UDPServer::RecieveRequest()
 	char buffer[sizeof(Request)];
 	recievePacketsToBuffer(buffer, sizeof(Request), &client);
 	Request *request = (Request *)buffer;
+
+	if (request->handshake.ack != expectedAck)
+	{
+		cout << "Invalid handshake acknowledgement" << endl;
+		return RecieveRequest(expectedAck);
+	}
+
 	return *request;
 }
 
@@ -54,4 +61,28 @@ bool UDP::SendData(Data data)
 Data UDP::RecieveData()
 {
 	return recieveData(&client);
+}
+
+Handshake UDPServer::recieveHandshakeRequest()
+{
+	int slen, recv_len;
+
+	slen = sizeof(client);
+	char buffer[sizeof(Handshake)];
+	recievePacketsToBuffer(buffer, sizeof(Handshake), &client);
+	Handshake *hsReq = (Handshake *)buffer;
+	logger->Log("Recieved handshake request.\n");
+	return *hsReq;
+}
+
+bool UDPServer::sendHandshakeResponse(Handshake hs)
+{
+	char buffer[sizeof(Handshake)];
+	memset(buffer, '\0', sizeof(Handshake));
+	memcpy(buffer, &hs, sizeof(Handshake));
+
+	splitAndSendAsPackets(buffer, sizeof(Handshake), &client);
+	logger->Log("Sent handshake response.\n");
+
+	return true;
 }
