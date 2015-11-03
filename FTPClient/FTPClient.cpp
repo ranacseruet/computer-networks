@@ -9,7 +9,23 @@ FTPClient::FTPClient()
 
 int FTPClient::handshake()
 {
-	return 2;
+	int random = (rand() % 100) + 1;
+
+	memset(&handsahke, '\0', sizeof(handsahke));
+	
+
+	
+	handsahke.seq = random;
+
+	//sending list request
+	uc->CreateConnection();
+	uc->SendHandshakeRequest(handsahke);
+
+	//Receive Request
+	Handshake handsahke = uc->RecieveHandshakeResponse();
+	cout << handsahke.seq << endl;
+	uc->CloseConnection();
+	return handsahke.seq+1;
 }
 
 void FTPClient::list() 

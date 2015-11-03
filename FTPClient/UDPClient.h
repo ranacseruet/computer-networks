@@ -16,4 +16,7 @@ public:
 	
 	bool SendRequest(Request);
 	Response RecieveResponse();
+
+	bool SendHandshakeRequest(Handshake);
+	Handshake RecieveHandshakeResponse();
 };
