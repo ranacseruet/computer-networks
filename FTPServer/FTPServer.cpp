@@ -15,9 +15,16 @@ void FTPServer::run()
 	while (1)
 	{
 		Request request;
-		request = udpServer->RecieveRequest();
 		
-		cout << "Got request type: " << request.type;
+		Handshake hs;
+		hs = udpServer->recieveHandshakeRequest();
+		hs.ack = hs.seq + 1;
+		hs.seq = (rand() % 100) + 10;
+		udpServer->sendHandshakeResponse(hs);
+
+		request = udpServer->RecieveRequest(hs.seq+1);
+		
+		cout << "Got request type: " << request.type<<endl;
 		switch (request.type)
 		{
 		case REQ_LIST:
