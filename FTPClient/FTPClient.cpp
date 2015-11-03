@@ -96,14 +96,17 @@ void FTPClient::get()
 
 void FTPClient::put()
 {
-	int handshake_value = handshake();
-	memset(&req, '\0', sizeof(req));
+	FileHelper * fh = new FileHelper("\\client_data\\");
+	cout << fh->GetListOfFiles() << endl;
+	
 
 	string fileName;
 	cout << "Type name of file to be sent: " << endl;
+	memset(&req, '\0', sizeof(req));
 	getline(cin, fileName);
 	strcpy(req.filename, fileName.c_str());
 
+	int handshake_value = handshake();
 	req.type = REQ_PUT;
 	req.handshake.ack = handshake_value;
 
@@ -123,7 +126,6 @@ void FTPClient::put()
 	}
 
 
-	FileHelper * fh = new FileHelper("\\client_data\\");
 	char dataStream[RESP_LENGTH];
 	memset(dataStream, '\0', RESP_LENGTH);
 	Data data;
