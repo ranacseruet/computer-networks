@@ -59,6 +59,17 @@ bool UDPClient::SendRequest(Request req)
 	return true;
 };
 
+bool UDPClient::SendHandshakeRequest(Handshake req)
+{
+	char buffer[BUFFER_LENGTH];
+	memset(buffer, '\0', BUFFER_LENGTH);
+	memcpy(buffer, &req, sizeof(req));
+
+	splitAndSendAsPackets(buffer, sizeof(Handshake), &server);
+
+	return true;
+}
+
 Response UDPClient::RecieveResponse() 
 {
 	Response *ptr;
@@ -70,6 +81,18 @@ Response UDPClient::RecieveResponse()
 
 	return *ptr;
 };
+
+Handshake UDPClient::RecieveHandshakeResponse()
+{
+	Handshake *ptr;
+	int fromLength = sizeof(server);
+
+	char buffer[sizeof(Handshake)];
+	recievePacketsToBuffer(buffer, sizeof(Handshake), &server);
+	ptr = (Handshake *)buffer;
+
+	return *ptr;
+}
 
 bool UDP::SendData(Data data)
 {

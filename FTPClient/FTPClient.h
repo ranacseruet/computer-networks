@@ -9,6 +9,7 @@ private:
 	UDPClient * uc;
 	Request req;
 	string serverIpAdd;
+	Handshake handsahke;
 
 public:
 	FTPClient();
