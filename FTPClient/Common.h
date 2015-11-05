@@ -78,11 +78,12 @@ public:
 	void Log(string message)
 	{
 		cout << message <<endl;
-		
-		//std::ofstream outfile;
-		//outfile.open(logPath, std::ios_base::app);
-		//outfile << message;
-		//outfile.close();
+
+		//log to file as well
+		ofstream outfile;
+		outfile.open(logPath, std::ios_base::app);
+		outfile << message;
+		outfile.close();
 	}
 };
 
@@ -101,7 +102,7 @@ public class FileHelper
 		mbstowcs(wa, text, size);
 		return wa;
 	}
-
+public:
 	void buildFullFilePath(char fullPath[], char fileName[])
 	{
 		memset(fullPath, '\0', sizeof(fullPath));
@@ -109,7 +110,7 @@ public class FileHelper
 		strcat(fullPath, "\\");
 		strcat(fullPath, fileName);
 	}
-public:
+
 	FileHelper(char path[FILENAME_MAX])
 	{
 		char currentDirectory[FILENAME_MAX];

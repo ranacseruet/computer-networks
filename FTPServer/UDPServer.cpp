@@ -23,17 +23,15 @@ Request UDPServer::RecieveRequest(int expectedAck)
 
 	slen = sizeof(client);
 
-	//keep listening for data
-	printf("Waiting for Request...");
-	//fflush(stdout);
-
 	char buffer[sizeof(Request)];
 	recievePacketsToBuffer(buffer, sizeof(Request), &client);
 	Request *request = (Request *)buffer;
 
 	if (request->handshake.ack != expectedAck)
 	{
-		cout << "Invalid handshake acknowledgement" << endl;
+		char logMessage[100] = { '\0' };
+		sprintf(logMessage, "Handshake acknowledgement didn't match\n");
+		logger->Log(logMessage);
 		return RecieveRequest(expectedAck);
 	}
 
@@ -47,8 +45,7 @@ bool UDPServer::SendResponse(Response response)
 	memcpy(buffer, &response, sizeof(response));
 
 	splitAndSendAsPackets(buffer, sizeof(Response), &client);
-	//printf("Sent response. Message: %s\n", response.message);
-	logger->Log("Sent response. Message: " + string(response.message));
+	logger->Log("Sent response.\n");
 
 	return true;
 }
@@ -71,7 +68,11 @@ Handshake UDPServer::recieveHandshakeRequest()
 	char buffer[sizeof(Handshake)];
 	recievePacketsToBuffer(buffer, sizeof(Handshake), &client);
 	Handshake *hsReq = (Handshake *)buffer;
-	logger->Log("Recieved handshake request.\n");
+	
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "Recieved handshake request. Seq No# %d\n", hsReq->seq);
+	logger->Log(logMessage);
+	
 	return *hsReq;
 }
 
@@ -82,7 +83,10 @@ bool UDPServer::sendHandshakeResponse(Handshake hs)
 	memcpy(buffer, &hs, sizeof(Handshake));
 
 	splitAndSendAsPackets(buffer, sizeof(Handshake), &client);
-	logger->Log("Sent handshake response.\n");
+	
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "Sent handshake response. Ack# %d and Own Sequence# %d \n", hs.ack, hs.seq);
+	logger->Log(logMessage);
 
 	return true;
 }

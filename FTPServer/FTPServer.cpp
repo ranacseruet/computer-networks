@@ -15,6 +15,16 @@ void FTPServer::run()
 	while (1)
 	{
 		Request request;
+
+		char logMessage[100] = { '\0' };
+
+		char serverName[100] = { '\0' };
+		if (gethostname(serverName, HOSTNAME_LENGTH) != 0)
+		{
+			cerr << "Get the host name error,exit" << endl;
+		}
+		sprintf(logMessage, "Host %s Waiting For Requests...\n", serverName);
+		logger->Log(logMessage);
 		
 		Handshake hs;
 		hs = udpServer->recieveHandshakeRequest();
@@ -24,7 +34,10 @@ void FTPServer::run()
 
 		request = udpServer->RecieveRequest(hs.seq+1);
 		
-		cout << "Got request type: " << request.type<<endl;
+		memset(logMessage, '\0', sizeof(logMessage));
+		sprintf(logMessage, "Got request. Type: %d\n", request.type);
+		logger->Log(logMessage);
+
 		switch (request.type)
 		{
 		case REQ_LIST:
@@ -63,9 +76,8 @@ void FTPServer::list(Request request)
 		strcpy(response.message, filesList.c_str());
 		response.isSuccess = true;
 	}
-	cout << "Here sending response" << endl;
 	udpServer->SendResponse(response);
-	logger->Log("Responsed to LIST operation");
+	logger->Log("Responsed to LIST operation\n");
 }
 
 void FTPServer::get(Request request)
@@ -105,15 +117,20 @@ void FTPServer::get(Request request)
 		memcpy(data.content, dataStream, RESP_LENGTH);
 		data.isLastPacket = lastPacket;
 		udpServer->SendData(data);
-		//cout << "File read:" << strlen(dataStream) << " bytes" << endl;
+		
+		char logMessage[100] = { '\0' };
+		sprintf(logMessage, "Read And Sent %d Bytes!\n", numOfBytesRead);
+		logger->Log(logMessage);
+
 		if (lastPacket)
 		{
 			break;
 		}
 		pos += numOfBytesRead;
 	}
-	logger->Log("\nFile sending complete. Total Bytes: ");
-	cout << pos << endl;
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "File sending complete. Total Bytes: %d\n", pos);
+	logger->Log(logMessage);
 }
 
 void FTPServer::put(Request request)
@@ -154,7 +171,7 @@ void FTPServer::put(Request request)
 			break;
 		}
 	}
-	logger->Log("\nFile data recieving complete");
+	logger->Log("File data recieving complete\n");
 }
 
 void FTPServer::del(Request request)
@@ -182,6 +199,10 @@ void FTPServer::del(Request request)
 	}
 
 	udpServer->SendResponse(response);
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "File successfully deleted : %s\n", request.filename);
+	logger->Log(logMessage);
 }
 
 void FTPServer::rename(Request request)
@@ -209,14 +230,23 @@ void FTPServer::rename(Request request)
 	}
 
 	udpServer->SendResponse(response);
+	
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "File Renaming Complete\n");
+	logger->Log(logMessage);
 }
 
 int main(void)
 {
 	Request req;
-	Logger *logger = new Logger("data\\server_log.txt");
-	UDPServer *server = new UDPServer(logger);
 	FileHelper *helper = new FileHelper("\\server_data\\");
+	
+	char logFilePath[100] = { '\0' };
+	_getcwd(logFilePath, sizeof(logFilePath));
+	helper->buildFullFilePath(logFilePath, "server_log.txt");
+
+	Logger *logger = new Logger(logFilePath);
+	UDPServer *server = new UDPServer(logger);
 	FTPServer *ftpServer = new FTPServer(server, helper, logger);
 	ftpServer->run();
 
