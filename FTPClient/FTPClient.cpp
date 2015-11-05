@@ -5,6 +5,11 @@ using namespace std;
 FTPClient::FTPClient()
 {
 	uc = new UDPClient();
+	fh = new FileHelper("\\client_data\\");
+	char logFilePath[100] = { '\0' };
+	_getcwd(logFilePath, sizeof(logFilePath));
+	fh->buildFullFilePath(logFilePath, "client_log.txt");
+	logger = new Logger(logFilePath);
 }
 
 int FTPClient::handshake()
@@ -13,9 +18,11 @@ int FTPClient::handshake()
 
 	memset(&handsahke, '\0', sizeof(handsahke));
 	
-
-	
 	handsahke.seq = random;
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "Handshake Started with SEQ# %d\n", random);
+	logger->Log(logMessage);
 
 	//sending list request
 	uc->CreateConnection();
@@ -23,7 +30,10 @@ int FTPClient::handshake()
 
 	//Receive Request
 	Handshake handsahke = uc->RecieveHandshakeResponse();
-	cout << handsahke.seq << endl;
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "From server ACK# %d\n", handsahke.seq);
+	logger->Log(logMessage);
 	uc->CloseConnection();
 	return handsahke.seq+1;
 }
@@ -40,12 +50,19 @@ void FTPClient::list()
 	req.type = REQ_LIST;
 	req.handshake.ack = handshake_value;
 
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "List request sent with ACK# %d\n", handshake_value);
+	logger->Log(logMessage);
+
+	uc->CloseConnection();
+
 	//sending list request
 	uc->CreateConnection();
 	uc->SendRequest(req);
 
 	//Receive Request
 	Response res = uc->RecieveResponse();
+	logger->Log("List Response recieved from the server");
 	cout << res.message << endl;
 	uc->CloseConnection();
 }
@@ -55,6 +72,11 @@ void FTPClient::get()
 	list();
 
 	int handshake_value = handshake();
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "GET request with ACK# %d\n", handshake_value);
+	logger->Log(logMessage);
+
 	memset(&req, '\0', sizeof(req));
 
 	//TODO take user input and set
@@ -81,7 +103,7 @@ void FTPClient::get()
 	}
 
 	Data resData;
-	FileHelper * fh = new FileHelper("\\client_data\\");
+	
 	while (true)
 	{
 		resData = uc->RecieveData();
@@ -91,6 +113,8 @@ void FTPClient::get()
 			break;
 		}
 	}
+
+	logger->Log("File Received.");
 	uc->CloseConnection();
 }
 
@@ -109,6 +133,10 @@ void FTPClient::put()
 	int handshake_value = handshake();
 	req.type = REQ_PUT;
 	req.handshake.ack = handshake_value;
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "PUT request with ACK# %d\n", handshake_value);
+	logger->Log(logMessage);
 
 	
 	//sending list request
@@ -148,6 +176,8 @@ void FTPClient::put()
 		pos += numOfBytesRead;
 	}
 
+
+	logger->Log("File sent.");
 	uc->CloseConnection();
 }
 
@@ -166,6 +196,10 @@ void FTPClient::del()
 
 	req.type = REQ_DELETE;
 	req.handshake.ack = handshake_value;
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "DELETE request with ACK# %d\n", handshake_value);
+	logger->Log(logMessage);
 
 	//sending list request
 	uc->CreateConnection();
@@ -197,6 +231,10 @@ void FTPClient::rename()
 
 	req.type = REQ_RENAME;
 	req.handshake.ack = handshake_value;
+
+	char logMessage[100] = { '\0' };
+	sprintf(logMessage, "Rename request with ACK# %d\n", handshake_value);
+	logger->Log(logMessage);
 
 	//sending list request
 	uc->CreateConnection();

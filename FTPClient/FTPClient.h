@@ -10,6 +10,8 @@ private:
 	Request req;
 	string serverIpAdd;
 	Handshake handsahke;
+	FileHelper * fh;
+	Logger *logger;
 
 public:
 	FTPClient();
