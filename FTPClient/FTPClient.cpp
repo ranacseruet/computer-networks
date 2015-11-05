@@ -31,7 +31,8 @@ int FTPClient::handshake()
 	//Receive Request
 	Handshake handsahke = uc->RecieveHandshakeResponse();
 
-	char logMessage[100] = { '\0' };
+	
+	memset(logMessage, '\0', sizeof(logMessage));
 	sprintf(logMessage, "From server ACK# %d\n", handsahke.seq);
 	logger->Log(logMessage);
 	uc->CloseConnection();
