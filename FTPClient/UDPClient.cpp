@@ -35,12 +35,12 @@ void UDPClient::SetHostName(char host[])
 
 void UDPClient::CreateConnection() 
 {
-	createAndBindSocketConnection(&client, 0);
+	createAndBindSocketConnection(&client, 5000);
 
 	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = getAddressByHost(serverName);
-	server.sin_port = htons(SERVER_PORT);
+	server.sin_port = htons(7000);
 }
 
 void UDPClient::CloseConnection() 

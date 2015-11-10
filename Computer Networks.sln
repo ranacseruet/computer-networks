@@ -6,6 +6,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTPServer", "FTPServer\FTPS
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FTPClient", "FTPClient\FTPClient.vcxproj", "{48011505-4458-40DD-93E2-8918AC621D00}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Router", "Router\Router.vcxproj", "{12447AE6-2574-46B6-BFC0-EA37813A54FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -20,6 +22,10 @@ Global
 		{48011505-4458-40DD-93E2-8918AC621D00}.Debug|Win32.Build.0 = Debug|Win32
 		{48011505-4458-40DD-93E2-8918AC621D00}.Release|Win32.ActiveCfg = Release|Win32
 		{48011505-4458-40DD-93E2-8918AC621D00}.Release|Win32.Build.0 = Release|Win32
+		{12447AE6-2574-46B6-BFC0-EA37813A54FD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{12447AE6-2574-46B6-BFC0-EA37813A54FD}.Debug|Win32.Build.0 = Debug|Win32
+		{12447AE6-2574-46B6-BFC0-EA37813A54FD}.Release|Win32.ActiveCfg = Release|Win32
+		{12447AE6-2574-46B6-BFC0-EA37813A54FD}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
