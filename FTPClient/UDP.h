@@ -98,18 +98,46 @@ private:
 		int attempt = 5;//MAX ATTEMPT
 		while (attempt > 0)
 		{
-			//get acknowledgement
-			//TODO implement timeout
-			UDPPacket ackPack = recieveUDPPacket(to);
+			struct timeval tv;
+			tv.tv_sec = 2;
+			tv.tv_usec = 0;
 
-			if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
+			fd_set readfds;
+			FD_ZERO(&readfds);
+			FD_SET(socketHandle, &readfds);
+
+			int ret = select(socketHandle + 1, &readfds, NULL, NULL, &tv);
+
+			if (ret > 0)
 			{
-				//success ack
-				//cout << "Got and successfull acknowledgement!" << endl;
-				return true;
+				//has data to read
+				//get acknowledgement
+				UDPPacket ackPack = recieveUDPPacket(to);
+
+				if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
+				{
+					//success ack
+					//cout << "Got and successfull acknowledgement!" << endl;
+					return true;
+				}
+				else
+				{
+					//recieved wrong data, try again
+					p.retrying = true;
+					sendUDPPacket(p, to);
+				}
 			}
-			p.retrying = true;
-			sendUDPPacket(p, to);
+			else if (ret == 0)
+			{
+				//timed out
+				p.retrying = true;
+				sendUDPPacket(p, to);
+			}
+			else
+			{
+				//select error
+				cout << "Timer Error: "<<ret<<endl;
+			}
 			attempt--;
 		}
 		//couldn't send at all
