@@ -40,7 +40,7 @@ void UDPClient::CreateConnection()
 	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = getAddressByHost(serverName);
-	server.sin_port = htons(7000);
+	server.sin_port = htons(SERVER_PORT);
 }
 
 void UDPClient::CloseConnection() 

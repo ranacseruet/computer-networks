@@ -45,6 +45,14 @@ private:
 			return p;
 		}
 		//Send ACK
+		//TODO verify acknowledgement sending
+		sendPacketRecieptACK(p, from);
+
+		return p;
+	}
+
+	bool sendPacketRecieptACK(UDPPacket p, sockaddr_in *from)
+	{
 		if (p.type != PACKET_ACK)
 		{
 			//get acknowledgement
@@ -55,11 +63,10 @@ private:
 			if (!sendUDPPacket(ackPack, from))
 			{
 				cout << "Couldn't send the acknowledgement!" << endl;
+				false;
 			}
-
 		}
-
-		return p;
+		return true;
 	}
 
 	bool sendUDPPacket(UDPPacket p, sockaddr_in *to)
@@ -75,29 +82,41 @@ private:
 			printf("failed sending data to. Sent bytes %d\n", sent_bytes);
 			return false;
 		}
-		if (p.type != PACKET_ACK && p.retrying != true)
-		{
-			int attempt = 5;//MAX ATTEMPT
-			while (attempt > 0)
-			{
-				//get acknowledgement
-				UDPPacket ackPack = recieveUDPPacket(to);
-				if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
-				{
-					//success ack
-					//cout << "Got and successfull acknowledgement!" << endl;
-					return true;
-				}
-				p.retrying = true;
-				sendUDPPacket(p, to);
-				attempt--;
-			}
-			//couldn't send at all
-			cout << "Couldn't get an successfull acknowledgement!" << endl;
-			return false;
-		}
+		//TODO check true/false
+		recievePacketRecieptACK(p, to);
 		return true;
 	}
+
+	bool recievePacketRecieptACK(UDPPacket p, sockaddr_in *to)
+	{
+		if (p.type == PACKET_ACK || p.retrying == true)
+		{
+			//no need to retry this type of packet
+			return true;
+		}
+
+		int attempt = 5;//MAX ATTEMPT
+		while (attempt > 0)
+		{
+			//get acknowledgement
+			//TODO implement timeout
+			UDPPacket ackPack = recieveUDPPacket(to);
+
+			if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
+			{
+				//success ack
+				//cout << "Got and successfull acknowledgement!" << endl;
+				return true;
+			}
+			p.retrying = true;
+			sendUDPPacket(p, to);
+			attempt--;
+		}
+		//couldn't send at all
+		cout << "Couldn't get an successfull acknowledgement with 5 Tries! Giving Up!" << endl;
+		return false;
+	}
+
 protected:
 
 	char serverName[HOSTNAME_LENGTH];
