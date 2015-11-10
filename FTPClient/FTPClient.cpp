@@ -6,7 +6,7 @@ FTPClient::FTPClient()
 {
 	uc = new UDPClient();
 	fh = new FileHelper("\\client_data\\");
-	char logFilePath[100] = { '\0' };
+	char logFilePath[FILENAME_LENGTH+100] = { '\0' };
 	_getcwd(logFilePath, sizeof(logFilePath));
 	fh->buildFullFilePath(logFilePath, "client_log.txt");
 	logger = new Logger(logFilePath);

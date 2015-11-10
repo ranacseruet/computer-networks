@@ -241,7 +241,7 @@ int main(void)
 	Request req;
 	FileHelper *helper = new FileHelper("\\server_data\\");
 	
-	char logFilePath[100] = { '\0' };
+	char logFilePath[FILENAME_LENGTH+100] = { '\0' };
 	_getcwd(logFilePath, sizeof(logFilePath));
 	helper->buildFullFilePath(logFilePath, "server_log.txt");
 

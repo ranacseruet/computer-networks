@@ -18,7 +18,6 @@
     <ClInclude Include="UDPClient.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
     <ClCompile Include="FTPClient.cpp" />
     <ClCompile Include="UDPClient.cpp" />
   </ItemGroup>

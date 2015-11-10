@@ -18,7 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FTPServer.cpp" />
-    <ClCompile Include="Server.cpp" />
     <ClCompile Include="UDPServer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
