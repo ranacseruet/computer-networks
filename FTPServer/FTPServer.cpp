@@ -119,8 +119,8 @@ void FTPServer::get(Request request)
 		udpServer->SendData(data);
 		
 		char logMessage[100] = { '\0' };
-		sprintf(logMessage, "Read And Sent %d Bytes!\n", numOfBytesRead);
-		logger->Log(logMessage);
+		//sprintf(logMessage, "Read And Sent %d Bytes!\n", numOfBytesRead);
+		//logger->Log(logMessage);
 
 		if (lastPacket)
 		{

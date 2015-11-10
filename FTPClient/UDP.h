@@ -8,7 +8,8 @@ protected:
 	typedef enum
 	{
 		PACKET_DATA=1,
-		PACKET_ACK=2
+		PACKET_ACK=2,
+		PACKET_DUP=3
 	} PacketType;
 
 	typedef struct
@@ -33,7 +34,6 @@ private:
 	UDPPacket recieveUDPPacket(sockaddr_in *from)
 	{
 		UDPPacket p;
-
 		memset(&p, '\0', sizeof(p));
 
 		int fromLength = sizeof(sockaddr_in);
@@ -44,10 +44,6 @@ private:
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			return p;
 		}
-		//Send ACK
-		//TODO verify acknowledgement sending
-		sendPacketRecieptACK(p, from);
-
 		return p;
 	}
 
@@ -64,6 +60,10 @@ private:
 			{
 				cout << "Couldn't send the acknowledgement!" << endl;
 				false;
+			}
+			else
+			{
+				cout << "Sent packet reciept acknowledgement" << endl;
 			}
 		}
 		return true;
@@ -82,8 +82,6 @@ private:
 			printf("failed sending data to. Sent bytes %d\n", sent_bytes);
 			return false;
 		}
-		//TODO check true/false
-		recievePacketRecieptACK(p, to);
 		return true;
 	}
 
@@ -95,56 +93,88 @@ private:
 			return true;
 		}
 
-		int attempt = 5;//MAX ATTEMPT
-		while (attempt > 0)
+		struct timeval tv;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+
+		fd_set readfds;
+		FD_ZERO(&readfds);
+		FD_SET(socketHandle, &readfds);
+
+		int ret = select(socketHandle + 1, &readfds, NULL, NULL, &tv);
+
+		if (ret > 0)
 		{
-			struct timeval tv;
-			tv.tv_sec = 2;
-			tv.tv_usec = 0;
+			//has data to read
+			//get acknowledgement
+			UDPPacket ackPack = recieveUDPPacket(to);
 
-			fd_set readfds;
-			FD_ZERO(&readfds);
-			FD_SET(socketHandle, &readfds);
-
-			int ret = select(socketHandle + 1, &readfds, NULL, NULL, &tv);
-
-			if (ret > 0)
+			if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
 			{
-				//has data to read
-				//get acknowledgement
-				UDPPacket ackPack = recieveUDPPacket(to);
-
-				if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
-				{
-					//success ack
-					//cout << "Got and successfull acknowledgement!" << endl;
-					return true;
-				}
-				else
-				{
-					//recieved wrong data, try again
-					p.retrying = true;
-					sendUDPPacket(p, to);
-				}
-			}
-			else if (ret == 0)
-			{
-				//timed out
-				p.retrying = true;
-				sendUDPPacket(p, to);
+				//success ack
+				//cout << "Got and successfull acknowledgement!" << endl;
+				return true;
 			}
 			else
 			{
-				//select error
-				cout << "Timer Error: "<<ret<<endl;
+				//recieved wrong data, try again
+				cout << "Wrong acknoledgement." << endl;
+				return false;
 			}
-			attempt--;
 		}
-		//couldn't send at all
-		cout << "Couldn't get an successfull acknowledgement with 5 Tries! Giving Up!" << endl;
-		return false;
+		else if (ret == 0)
+		{
+			//timed out
+			cout << "Timeout occured. Resending packet." << endl;
+			return false;
+		}
+		else
+		{
+			//select error
+			cout << "Timer Error: "<<ret<<endl;
+			return false;
+		}
 	}
 
+
+	bool sendUDPPacketReliably(UDPPacket p, sockaddr_in *to)
+	{
+		int attempt = 5;
+		do
+		{
+			if (attempt < 5)
+			{
+				cout << "resending packet#"<<p.sequence << endl;
+			}
+			sendUDPPacket(p, to);
+			attempt--;
+			if (attempt < 0)
+			{
+				cout << "Max attempt failed. Give up" <<endl;
+				break;
+			}
+		} while (!recievePacketRecieptACK(p, to));		
+		return !(attempt < 0);
+	}
+
+	UDPPacket recieveUDPPacketReiably(int oldSeq, sockaddr_in *from)
+	{
+		UDPPacket packet;
+		//discard duplicate packets in loop
+		bool duplicate = false;
+		do
+		{
+			if (duplicate)
+			{
+				cout << "recieved duplicate packet" << endl;
+			}
+			packet = recieveUDPPacket(from);
+			duplicate = true;
+		} while (packet.sequence == oldSeq);
+
+		sendPacketRecieptACK(packet, from);
+		return packet;
+	}
 protected:
 
 	char serverName[HOSTNAME_LENGTH];
@@ -218,11 +248,16 @@ protected:
 
 		if (PACKET_LENGTH >= size)
 		{
+			packet.sequence = 0;
 			//can be sent in one single packet
 			memset(packet.content, '\0', PACKET_LENGTH);
 			memcpy(packet.content, buffer, size);
 			//TODO check packet status, if false return error
-			sendUDPPacket(packet, to);
+			if (!sendUDPPacketReliably(packet, to))
+			{
+				cout << "reliable send of packet failed" << endl;
+			}
+			cout << "Sent single Packet " << ". Seq#" << packet.sequence << endl;
 		}
 		else
 		{
@@ -241,8 +276,11 @@ protected:
 				memcpy(packet.content, buffer + dataOffset, copySize);
 				//copyBinaryBuffer(packet.content, buffer + dataOffset, 0, copySize);
 				//TODO check packet status, if false return error
-				sendUDPPacket(packet, to);
-				//cout << "Sent Packet " << i << ". Size: " << copySize << endl;
+				if (!sendUDPPacketReliably(packet, to))
+				{
+					cout << "reliable send of packet failed" << endl;
+				}
+				cout << "Sent Packet " << i << ". Seq#" << packet.sequence << endl;
 				//printBinaryBuffer(packet.content, copySize);
 				dataOffset += copySize;
 			}
@@ -253,10 +291,13 @@ protected:
 	{
 		UDPPacket packet;
 		memset(buffer, '\0', size);
+		int oldSeq = -1;
 		if (PACKET_LENGTH >= size)
 		{
 			//can be recieved as one single packet
-			packet = recieveUDPPacket(from);
+			//discarding duplicate packets
+			packet = recieveUDPPacketReiably(oldSeq, from);
+			cout << "Recieved packet with seq# " << packet.sequence << endl;
 			memcpy(buffer, packet.content, size);
 		}
 		else
@@ -268,7 +309,10 @@ protected:
 			{
 				//recieve packets and add to data references
 				memset(packet.content, '\0', PACKET_LENGTH);
-				packet = recieveUDPPacket(from);
+				packet = recieveUDPPacketReiably(oldSeq, from);
+
+				oldSeq = packet.sequence;
+
 				int copySize = PACKET_LENGTH;
 				if ((size - bufferOffset) < PACKET_LENGTH)
 				{
