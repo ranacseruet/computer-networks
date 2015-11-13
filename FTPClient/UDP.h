@@ -22,7 +22,7 @@ protected:
 	}UDPPacket;
 	//----- UDP packet specific settings
 private:
-	int sequenceNo = 0;
+	int recieveSequenceNo = -1, sendingSequenceNo = 0;
 	void printBinaryBuffer(char buffer[], int length)
 	{
 		for (int i = 0; i < length; i++)
@@ -95,7 +95,7 @@ private:
 		}
 
 		struct timeval tv;
-		tv.tv_sec = 2;
+		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 
 		fd_set readfds;
@@ -249,7 +249,9 @@ protected:
 		UDPPacket packet;
 		packet.type = PACKET_DATA;
 		packet.retrying = false;
-		packet.sequence = sequenceNo++;
+		//window size 1
+		sendingSequenceNo = ++sendingSequenceNo % 3;
+		packet.sequence = sendingSequenceNo;
 		if (PACKET_LENGTH >= size)
 		{
 			//can be sent in one single packet
@@ -269,7 +271,9 @@ protected:
 			for (int i = 0; i < numOfPacketsToToSend; i++)
 			{
 				memset(packet.content, '\0', PACKET_LENGTH);
-				packet.sequence = sequenceNo++;
+				//window size 1
+				sendingSequenceNo = ++sendingSequenceNo % 3;
+				packet.sequence = sendingSequenceNo;
 				int copySize = PACKET_LENGTH;
 				if ((size - dataOffset) < PACKET_LENGTH)
 				{
@@ -294,7 +298,9 @@ protected:
 	{
 		UDPPacket packet;
 		memset(buffer, '\0', size);
-		int oldSeq = -1;
+		//window size 1
+		recieveSequenceNo = ++recieveSequenceNo % 3;
+		int oldSeq = recieveSequenceNo;
 		if (PACKET_LENGTH >= size)
 		{
 			//can be recieved as one single packet
@@ -313,8 +319,9 @@ protected:
 				//recieve packets and add to data references
 				memset(packet.content, '\0', PACKET_LENGTH);
 				packet = recieveUDPPacketReiably(oldSeq, from);
-
-				oldSeq = packet.sequence;
+				//window size 1
+				recieveSequenceNo = ++recieveSequenceNo % 3;
+				oldSeq = recieveSequenceNo;
 
 				int copySize = PACKET_LENGTH;
 				if ((size - bufferOffset) < PACKET_LENGTH)
