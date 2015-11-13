@@ -102,13 +102,11 @@ void FTPClient::get()
 		uc->CloseConnection();
 		return;
 	}
-
-	Data resData;
-	
 	while (true)
 	{
+		Data resData;
 		resData = uc->RecieveData();
-		fh->WriteFile(req.filename, resData.content);
+		fh->WriteFile(req.filename, resData.content, resData.length);
 		if (resData.isLastPacket) {
 			cout << "Last Packet Received." << endl;
 			break;
@@ -167,6 +165,7 @@ void FTPClient::put()
 		bool lastPacket = !fh->ReadFile(req.filename, pos, dataStream, &numOfBytesRead);
 		memcpy(data.content, dataStream, numOfBytesRead);
 		data.isLastPacket = lastPacket;
+		data.length = numOfBytesRead;
 		uc->SendData(data);
 		//cout << "File read:" << strlen(dataStream) << " bytes" << endl;
 		if (lastPacket)

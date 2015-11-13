@@ -207,12 +207,12 @@ public:
 		return !endOfFile;
 	}
 
-	void WriteFile(char fileName[FILENAME_MAX], char buffer[DATA_LENGTH])
+	void WriteFile(char fileName[FILENAME_MAX], char buffer[DATA_LENGTH], int noOfBytes)
 	{
 		char fullPath[FILENAME_MAX];
 		buildFullFilePath(fullPath, fileName);
 		ofstream myFile(fullPath, ios::out | ios::binary | ios::app);
-		myFile.write(buffer, DATA_LENGTH);
+		myFile.write(buffer, noOfBytes);
 		myFile.close();
 		return;
 	}
