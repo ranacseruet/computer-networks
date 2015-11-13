@@ -40,7 +40,7 @@ void UDPClient::CreateConnection()
 	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = getAddressByHost(serverName);
-	server.sin_port = htons(SERVER_PORT);
+	server.sin_port = htons(5001);
 }
 
 void UDPClient::CloseConnection() 
@@ -50,9 +50,9 @@ void UDPClient::CloseConnection()
 
 bool UDPClient::SendRequest(Request req)
 {	
-	char buffer[BUFFER_LENGTH];
-	memset(buffer, '\0', BUFFER_LENGTH);
-	memcpy(buffer, &req, sizeof(req));
+	char buffer[sizeof(Request)];
+	memset(buffer, '\0', sizeof(Request));
+	memcpy(buffer, &req, sizeof(Request));
 	
 	splitAndSendAsPackets(buffer, sizeof(Request), &server);
 
@@ -61,8 +61,8 @@ bool UDPClient::SendRequest(Request req)
 
 bool UDPClient::SendHandshakeRequest(Handshake req)
 {
-	char buffer[BUFFER_LENGTH];
-	memset(buffer, '\0', BUFFER_LENGTH);
+	char buffer[sizeof(Handshake)];
+	memset(buffer, '\0', sizeof(Handshake));
 	memcpy(buffer, &req, sizeof(req));
 
 	splitAndSendAsPackets(buffer, sizeof(Handshake), &server);

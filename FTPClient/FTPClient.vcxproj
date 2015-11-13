@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="FTPClient.h" />
     <ClInclude Include="UDP.h" />

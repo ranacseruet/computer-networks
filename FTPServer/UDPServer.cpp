@@ -40,9 +40,9 @@ Request UDPServer::RecieveRequest(int expectedAck)
 
 bool UDPServer::SendResponse(Response response)
 {
-	char buffer[BUFFER_LENGTH];
-	memset(buffer, '\0', BUFFER_LENGTH);
-	memcpy(buffer, &response, sizeof(response));
+	char buffer[sizeof(Response)];
+	memset(buffer, '\0', sizeof(Response));
+	memcpy(buffer, &response, sizeof(Response));
 
 	splitAndSendAsPackets(buffer, sizeof(Response), &client);
 	logger->Log("Sent response.\n");

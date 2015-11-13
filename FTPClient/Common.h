@@ -12,9 +12,8 @@
 
 #define HOSTNAME_LENGTH 20
 #define RESP_LENGTH 140
+#define DATA_LENGTH 400
 #define FILENAME_LENGTH 80
-#define BUFFER_LENGTH 256
-//BUFFER_LENGTH is largest one
 
 using namespace std;
 
@@ -54,7 +53,8 @@ typedef struct
 typedef struct
 {	
 	Handshake handshake;
-	char content[RESP_LENGTH];
+	char content[DATA_LENGTH];
+	int length;
 	bool isLastPacket;
 }Data;
 
@@ -77,7 +77,15 @@ public:
 
 	void Log(string message)
 	{
-		cout << message <<endl;
+		Log(message, false);
+	}
+
+	void Log(string message, bool printConsole)
+	{
+		if (printConsole)
+		{
+			cout << message << endl;
+		}
 
 		//log to file as well
 		ofstream outfile;
@@ -107,7 +115,7 @@ public:
 	{
 		memset(fullPath, '\0', sizeof(fullPath));
 		strcpy(fullPath, dataDir);
-		strcat(fullPath, "\\");
+		//strcat(fullPath, "\\");
 		strcat(fullPath, fileName);
 	}
 
@@ -166,6 +174,7 @@ public:
 	bool DoesFileExist(char fileName[FILENAME_MAX])
 	{
 		char fullPath[FILENAME_MAX];
+		memset(fullPath, '\0', sizeof(fullPath));
 		buildFullFilePath(fullPath, fileName);
 		struct _stat stat_buf;
 		return (_stat(fullPath, &stat_buf) == 0);
@@ -188,9 +197,9 @@ public:
 		if (fileReader.is_open())
 		{
 			fileReader.seekg(pos);
-			memset(buffer, '\0', RESP_LENGTH);
+			memset(buffer, '\0', DATA_LENGTH);
 			/* Read the contents of file and write into the buffer for transmission */
-			fileReader.read(buffer, RESP_LENGTH);
+			fileReader.read(buffer, DATA_LENGTH);
 		}
 		*numOfBytesRead = fileReader.gcount();
 		endOfFile = fileReader.eof();
@@ -198,12 +207,12 @@ public:
 		return !endOfFile;
 	}
 
-	void WriteFile(char fileName[FILENAME_MAX], char buffer[RESP_LENGTH])
+	void WriteFile(char fileName[FILENAME_MAX], char buffer[DATA_LENGTH])
 	{
 		char fullPath[FILENAME_MAX];
 		buildFullFilePath(fullPath, fileName);
 		ofstream myFile(fullPath, ios::out | ios::binary | ios::app);
-		myFile.write(buffer, RESP_LENGTH);
+		myFile.write(buffer, DATA_LENGTH);
 		myFile.close();
 		return;
 	}

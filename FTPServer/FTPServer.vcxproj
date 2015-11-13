@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FTPServer.h" />
-    <ClInclude Include="Server.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="UDPServer.h" />
   </ItemGroup>

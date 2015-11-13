@@ -104,17 +104,17 @@ void FTPServer::get(Request request)
 	}
 
 	//send data
-	char dataStream[RESP_LENGTH];
+	char dataStream[DATA_LENGTH];
 	memset(dataStream, '\0', sizeof(dataStream));
 	Data data;
 	long pos = 0;
 	int numOfBytesRead = 0;
 	while (1)
 	{
-		memset(dataStream, '\0', RESP_LENGTH);
-		memset(data.content, '\0', RESP_LENGTH);
+		memset(dataStream, '\0', DATA_LENGTH);
+		memset(data.content, '\0', DATA_LENGTH);
 		bool lastPacket = !fileHelper->ReadFile(request.filename, pos, dataStream, &numOfBytesRead);
-		memcpy(data.content, dataStream, RESP_LENGTH);
+		memcpy(data.content, dataStream, numOfBytesRead);
 		data.isLastPacket = lastPacket;
 		udpServer->SendData(data);
 		
@@ -246,12 +246,24 @@ int main(void)
 	helper->buildFullFilePath(logFilePath, "server_log.txt");
 
 	Logger *logger = new Logger(logFilePath);
-	UDPServer *server = new UDPServer(logger);
-	FTPServer *ftpServer = new FTPServer(server, helper, logger);
+	UDPServer *udpServer = new UDPServer(logger);
+	FTPServer *ftpServer = new FTPServer(udpServer, helper, logger);
 	ftpServer->run();
 
-	//Data data = server->RecieveData();
-	//cout << data.content<<endl;
+	/*Data data;
+	long pos = 0;
+	while (true)
+	{
+		data = udpServer->RecieveData();
+		helper->WriteFile("reliable.jpg", data.content);
+		//cout << "File data recieved:" << strlen(data.content) << " bytes" << endl;
+
+		if (data.isLastPacket)
+		{
+			cout << "This was last packet" << endl;
+			break;
+		}
+	}*/
 
 	int i;
 	cin >> i;

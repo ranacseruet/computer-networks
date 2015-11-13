@@ -4,7 +4,7 @@ public class UDP
 {
 protected:
 	//----- Making these protected as outside of derived classes shouldn't know about this
-#define PACKET_LENGTH 190
+#define PACKET_LENGTH 480
 	typedef enum
 	{
 		PACKET_DATA=1,
@@ -22,6 +22,7 @@ protected:
 	}UDPPacket;
 	//----- UDP packet specific settings
 private:
+	int sequenceNo = 0;
 	void printBinaryBuffer(char buffer[], int length)
 	{
 		for (int i = 0; i < length; i++)
@@ -63,7 +64,7 @@ private:
 			}
 			else
 			{
-				cout << "Sent packet reciept acknowledgement" << endl;
+				//cout << "Sent packet reciept acknowledgement #" << ackPack.sequence << endl;
 			}
 		}
 		return true;
@@ -94,7 +95,7 @@ private:
 		}
 
 		struct timeval tv;
-		tv.tv_sec = 1;
+		tv.tv_sec = 2;
 		tv.tv_usec = 0;
 
 		fd_set readfds;
@@ -112,20 +113,20 @@ private:
 			if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
 			{
 				//success ack
-				//cout << "Got and successfull acknowledgement!" << endl;
+				//cout << "Got acknowledgement for packet #" << p.sequence << endl;
 				return true;
 			}
 			else
 			{
 				//recieved wrong data, try again
-				cout << "Wrong acknoledgement." << endl;
+				cout << "Wrong acknoledgement for packet#"<<p.sequence << endl;
 				return false;
 			}
 		}
 		else if (ret == 0)
 		{
 			//timed out
-			cout << "Timeout occured. Resending packet." << endl;
+			cout << "ACK Timeout occured for packet #" << p.sequence << endl;
 			return false;
 		}
 		else
@@ -144,17 +145,21 @@ private:
 		{
 			if (attempt < 5)
 			{
-				cout << "resending packet#"<<p.sequence << endl;
+				cout << "Resending packet #"<<p.sequence << endl;
+			}
+			else
+			{
+				//cout << "Sending packet #" << p.sequence << endl;
 			}
 			sendUDPPacket(p, to);
 			attempt--;
-			if (attempt < 0)
+			if (attempt <=0)
 			{
-				cout << "Max attempt failed. Give up" <<endl;
+				cout << "Max attempt failed. Give up packet #"<<p.sequence <<endl;
 				break;
 			}
 		} while (!recievePacketRecieptACK(p, to));		
-		return !(attempt < 0);
+		return !(attempt <=0);
 	}
 
 	UDPPacket recieveUDPPacketReiably(int oldSeq, sockaddr_in *from)
@@ -166,13 +171,12 @@ private:
 		{
 			if (duplicate)
 			{
-				cout << "recieved duplicate packet" << endl;
+				cout << "recieved duplicate packet #" << packet.sequence << endl;
 			}
 			packet = recieveUDPPacket(from);
+			sendPacketRecieptACK(packet, from);
 			duplicate = true;
 		} while (packet.sequence == oldSeq);
-
-		sendPacketRecieptACK(packet, from);
 		return packet;
 	}
 protected:
@@ -245,10 +249,9 @@ protected:
 		UDPPacket packet;
 		packet.type = PACKET_DATA;
 		packet.retrying = false;
-
+		packet.sequence = sequenceNo++;
 		if (PACKET_LENGTH >= size)
 		{
-			packet.sequence = 0;
 			//can be sent in one single packet
 			memset(packet.content, '\0', PACKET_LENGTH);
 			memcpy(packet.content, buffer, size);
@@ -257,7 +260,7 @@ protected:
 			{
 				cout << "reliable send of packet failed" << endl;
 			}
-			cout << "Sent single Packet " << ". Seq#" << packet.sequence << endl;
+			//cout << "Sent single Packet " << ". Seq#" << packet.sequence << endl;
 		}
 		else
 		{
@@ -265,9 +268,8 @@ protected:
 			int dataOffset = 0;
 			for (int i = 0; i < numOfPacketsToToSend; i++)
 			{
-				packet.sequence = i;
 				memset(packet.content, '\0', PACKET_LENGTH);
-
+				packet.sequence = sequenceNo++;
 				int copySize = PACKET_LENGTH;
 				if ((size - dataOffset) < PACKET_LENGTH)
 				{
@@ -278,9 +280,10 @@ protected:
 				//TODO check packet status, if false return error
 				if (!sendUDPPacketReliably(packet, to))
 				{
-					cout << "reliable send of packet failed" << endl;
+					cout << "reliable send of packet failed! exiting." << endl;
+					break;
 				}
-				cout << "Sent Packet " << i << ". Seq#" << packet.sequence << endl;
+				//cout << "Sent Packet. Seq#" << packet.sequence << endl;
 				//printBinaryBuffer(packet.content, copySize);
 				dataOffset += copySize;
 			}
@@ -297,7 +300,7 @@ protected:
 			//can be recieved as one single packet
 			//discarding duplicate packets
 			packet = recieveUDPPacketReiably(oldSeq, from);
-			cout << "Recieved packet with seq# " << packet.sequence << endl;
+			//cout << "Recieved packet with seq# " << packet.sequence << endl;
 			memcpy(buffer, packet.content, size);
 		}
 		else
