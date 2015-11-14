@@ -2,20 +2,10 @@
 
 //-----Only to be used by UDP class internally
 #define PACKET_LENGTH 480
-typedef enum
-{
-	PACKET_DATA = 1,
-	PACKET_ACK = 2,
-	PACKET_DUP = 3
-} PacketType;
-
 typedef struct
 {
-	Handshake hs;
+	Handshake handshake;
 	char content[PACKET_LENGTH];
-	int sequence;
-	PacketType type;
-	bool retrying;
 }UDPPacket;
 //----- UDP packet specific settings
 
@@ -42,29 +32,6 @@ private:
 		return p;
 	}
 
-	//Send acknowledgement of recieved packet
-	bool sendPacketRecieptACK(UDPPacket p, sockaddr_in *from)
-	{
-		if (p.type != PACKET_ACK)
-		{
-			//get acknowledgement
-			UDPPacket ackPack;
-			ackPack.type = PACKET_ACK;
-			ackPack.retrying = false;
-			ackPack.sequence = p.sequence + 1;
-			if (!sendUDPPacket(ackPack, from))
-			{
-				cout << "Couldn't send the acknowledgement!" << endl;
-				false;
-			}
-			else
-			{
-				//cout << "Sent packet reciept acknowledgement #" << ackPack.sequence << endl;
-			}
-		}
-		return true;
-	}
-
 	//Send single UDP packet
 	bool sendUDPPacket(UDPPacket p, sockaddr_in *to)
 	{
@@ -82,15 +49,28 @@ private:
 		return true;
 	}
 
+	//Send acknowledgement of recieved packet
+	bool sendPacketRecieptACK(UDPPacket p, sockaddr_in *from)
+	{
+		//send acknowledgement
+		UDPPacket ackPack;
+		ackPack.handshake.seq = -1;
+		ackPack.handshake.ack = p.handshake.seq + 1;
+		if (!sendUDPPacket(ackPack, from))
+		{
+			cout << "Couldn't send the acknowledgement!" << endl;
+			return false;
+		}
+		else
+		{
+			//cout << "Sent packet reciept acknowledgement #" << ackPack.sequence << endl;
+		}
+		return true;
+	}
+
 	//recieve acknowledgement of sent packet
 	bool recievePacketRecieptACK(UDPPacket p, sockaddr_in *to)
 	{
-		if (p.type == PACKET_ACK || p.retrying == true)
-		{
-			//no need to retry this type of packet
-			return true;
-		}
-
 		struct timeval tv;
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
@@ -107,7 +87,7 @@ private:
 			//get acknowledgement
 			UDPPacket ackPack = recieveUDPPacket(to);
 
-			if (ackPack.type == PACKET_ACK && ackPack.sequence == p.sequence + 1)
+			if (ackPack.handshake.ack == p.handshake.seq + 1)
 			{
 				//success ack
 				//cout << "Got acknowledgement for packet #" << p.sequence << endl;
@@ -116,14 +96,14 @@ private:
 			else
 			{
 				//recieved wrong data, try again
-				cout << "Wrong acknoledgement for packet#"<<p.sequence << endl;
+				cout << "Wrong acknoledgement for packet#"<<p.handshake.seq << endl;
 				return false;
 			}
 		}
 		else if (ret == 0)
 		{
 			//timed out
-			cout << "ACK Timeout occured for packet #" << p.sequence << endl;
+			cout << "ACK Timeout occured for packet #" << p.handshake.seq << endl;
 			return false;
 		}
 		else
@@ -142,7 +122,7 @@ private:
 		{
 			if (attempt < 5)
 			{
-				cout << "Resending packet #"<<p.sequence << endl;
+				cout << "Resending packet #"<<p.handshake.seq << endl;
 			}
 			else
 			{
@@ -152,7 +132,7 @@ private:
 			attempt--;
 			if (attempt <=0)
 			{
-				cout << "Max attempt failed. Give up packet #"<<p.sequence <<endl;
+				cout << "Max attempt failed. Give up packet #"<<p.handshake.seq <<endl;
 				break;
 			}
 		} while (!recievePacketRecieptACK(p, to));		
@@ -169,12 +149,12 @@ private:
 		{
 			if (duplicate)
 			{
-				cout << "recieved duplicate packet #" << packet.sequence << endl;
+				cout << "recieved duplicate packet #" << packet.handshake.seq << endl;
 			}
 			packet = recieveUDPPacket(from);
 			sendPacketRecieptACK(packet, from);
 			duplicate = true;
-		} while (packet.sequence == oldSeq);
+		} while (packet.handshake.seq == oldSeq);
 		return packet;
 	}
 
@@ -184,36 +164,13 @@ protected:
 	struct sockaddr_in server, client;
 	SOCKET socketHandle;
 
-	bool createAndBindSocketConnection(sockaddr_in *address, int port)
-	{
-		//Create a socket
-		if ((socketHandle = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
-		{
-			cout << "Could not create socket. Error code : " << WSAGetLastError();
-			return false;
-		}
-
-		//Prepare the sockaddr_in structure
-		address->sin_family = AF_INET;
-		address->sin_addr.s_addr = INADDR_ANY;
-		address->sin_port = htons(port);
-
-		//Bind
-		if (bind(socketHandle, (struct sockaddr *)address, sizeof(*address)) == SOCKET_ERROR)
-		{
-			cout << "Bind failed with error code : " << WSAGetLastError();
-			return false;
-		}
-	}
-
 	void splitAndSendAsPackets(char *buffer, int size, sockaddr_in *to)
 	{
 		UDPPacket packet;
-		packet.type = PACKET_DATA;
-		packet.retrying = false;
 		//window size 1
 		sendingSequenceNo = ++sendingSequenceNo % 3;
-		packet.sequence = sendingSequenceNo;
+		packet.handshake.ack = -1;
+		packet.handshake.seq = sendingSequenceNo;
 		if (PACKET_LENGTH >= size)
 		{
 			//can be sent in one single packet
@@ -235,7 +192,7 @@ protected:
 				memset(packet.content, '\0', PACKET_LENGTH);
 				//window size 1
 				sendingSequenceNo = ++sendingSequenceNo % 3;
-				packet.sequence = sendingSequenceNo;
+				packet.handshake.seq = sendingSequenceNo;
 				int copySize = PACKET_LENGTH;
 				if ((size - dataOffset) < PACKET_LENGTH)
 				{
@@ -292,6 +249,28 @@ protected:
 				bufferOffset += copySize;
 				//cout << "Recieved Packet " << packet.sequence <<"Size: "<<copySize<< endl;
 			}
+		}
+	}
+
+	bool createAndBindSocketConnection(sockaddr_in *address, int port)
+	{
+		//Create a socket
+		if ((socketHandle = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
+		{
+			cout << "Could not create socket. Error code : " << WSAGetLastError();
+			return false;
+		}
+
+		//Prepare the sockaddr_in structure
+		address->sin_family = AF_INET;
+		address->sin_addr.s_addr = INADDR_ANY;
+		address->sin_port = htons(port);
+
+		//Bind
+		if (bind(socketHandle, (struct sockaddr *)address, sizeof(*address)) == SOCKET_ERROR)
+		{
+			cout << "Bind failed with error code : " << WSAGetLastError();
+			return false;
 		}
 	}
 

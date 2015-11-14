@@ -31,7 +31,6 @@ typedef struct
 {
 	int seq;
 	int ack;
-	int nak;
 } Handshake; //For Put Operatio
 
 typedef struct
@@ -44,7 +43,6 @@ typedef struct
 
 typedef struct
 {
-	Handshake handshake;
 	int type;
 	char message[RESP_LENGTH];
 	bool isSuccess;
@@ -52,7 +50,6 @@ typedef struct
 
 typedef struct
 {	
-	Handshake handshake;
 	char content[DATA_LENGTH];
 	int length;
 	bool isLastPacket;
