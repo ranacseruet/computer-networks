@@ -1,37 +1,31 @@
 #include "Common.h"
 
+//-----Only to be used by UDP class internally
+#define PACKET_LENGTH 480
+typedef enum
+{
+	PACKET_DATA = 1,
+	PACKET_ACK = 2,
+	PACKET_DUP = 3
+} PacketType;
+
+typedef struct
+{
+	Handshake hs;
+	char content[PACKET_LENGTH];
+	int sequence;
+	PacketType type;
+	bool retrying;
+}UDPPacket;
+//----- UDP packet specific settings
+
+
 public class UDP
 {
-protected:
-	//----- Making these protected as outside of derived classes shouldn't know about this
-#define PACKET_LENGTH 480
-	typedef enum
-	{
-		PACKET_DATA=1,
-		PACKET_ACK=2,
-		PACKET_DUP=3
-	} PacketType;
-
-	typedef struct
-	{
-		Handshake hs;
-		char content[PACKET_LENGTH];
-		int sequence;
-		PacketType type;
-		bool retrying;
-	}UDPPacket;
-	//----- UDP packet specific settings
 private:
 	int recieveSequenceNo = -1, sendingSequenceNo = 0;
-	void printBinaryBuffer(char buffer[], int length)
-	{
-		for (int i = 0; i < length; i++)
-		{
-			cout << buffer[i];
-		}
-		cout << endl;
-	}
-
+	
+	//Recieve a single UDP packet
 	UDPPacket recieveUDPPacket(sockaddr_in *from)
 	{
 		UDPPacket p;
@@ -48,6 +42,7 @@ private:
 		return p;
 	}
 
+	//Send acknowledgement of recieved packet
 	bool sendPacketRecieptACK(UDPPacket p, sockaddr_in *from)
 	{
 		if (p.type != PACKET_ACK)
@@ -70,6 +65,7 @@ private:
 		return true;
 	}
 
+	//Send single UDP packet
 	bool sendUDPPacket(UDPPacket p, sockaddr_in *to)
 	{
 		char buffer[sizeof(UDPPacket)];
@@ -86,6 +82,7 @@ private:
 		return true;
 	}
 
+	//recieve acknowledgement of sent packet
 	bool recievePacketRecieptACK(UDPPacket p, sockaddr_in *to)
 	{
 		if (p.type == PACKET_ACK || p.retrying == true)
@@ -137,7 +134,7 @@ private:
 		}
 	}
 
-
+	//Send UDP packet RELIABLY, reliable version of sendUDPPacket()
 	bool sendUDPPacketReliably(UDPPacket p, sockaddr_in *to)
 	{
 		int attempt = 5;
@@ -162,6 +159,7 @@ private:
 		return !(attempt <=0);
 	}
 
+	//Recieve UDP packet RELIABLY, reliable version of recieveUDPPacket()
 	UDPPacket recieveUDPPacketReiably(int oldSeq, sockaddr_in *from)
 	{
 		UDPPacket packet;
@@ -179,26 +177,12 @@ private:
 		} while (packet.sequence == oldSeq);
 		return packet;
 	}
+
 protected:
 
 	char serverName[HOSTNAME_LENGTH];
 	struct sockaddr_in server, client;
 	SOCKET socketHandle;
-
-	UDP(void)
-	{
-		WSADATA wsa;
-		if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-		{
-			cout << "Failed. Error Code : " << WSAGetLastError();
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	~UDP(void)
-	{
-		WSACleanup();
-	}
 
 	bool createAndBindSocketConnection(sockaddr_in *address, int port)
 	{
@@ -221,28 +205,6 @@ protected:
 			return false;
 		}
 	}
-
-	bool sendData(Data data, sockaddr_in *to)
-	{
-		//split data into multiple packets and send
-		char buffer[sizeof(Data)];
-		memset(buffer, '\0', sizeof(Data));
-		memcpy(buffer, &data, sizeof(Data));
-		splitAndSendAsPackets(buffer, sizeof(Data), to);
-
-		return true;
-	}
-
-	Data recieveData(sockaddr_in *from) 
-	{
-
-		Data* data;	
-		char buffer[sizeof(Data)];
-		recievePacketsToBuffer(buffer, sizeof(Data), from);
-		data = (Data *)buffer;
-
-		return *data;
-	};
 
 	void splitAndSendAsPackets(char *buffer, int size, sockaddr_in *to)
 	{
@@ -280,7 +242,6 @@ protected:
 					copySize = (size - dataOffset);
 				}
 				memcpy(packet.content, buffer + dataOffset, copySize);
-				//copyBinaryBuffer(packet.content, buffer + dataOffset, 0, copySize);
 				//TODO check packet status, if false return error
 				if (!sendUDPPacketReliably(packet, to))
 				{
@@ -288,7 +249,6 @@ protected:
 					break;
 				}
 				//cout << "Sent Packet. Seq#" << packet.sequence << endl;
-				//printBinaryBuffer(packet.content, copySize);
 				dataOffset += copySize;
 			}
 		}
@@ -331,12 +291,47 @@ protected:
 				memcpy((void *)(buffer + bufferOffset), packet.content, copySize);
 				bufferOffset += copySize;
 				//cout << "Recieved Packet " << packet.sequence <<"Size: "<<copySize<< endl;
-				//printBinaryBuffer(packet.content, PACKET_LENGTH);
 			}
 		}
 	}
 
+	bool sendData(Data data, sockaddr_in *to)
+	{
+		//split data into multiple packets and send
+		char buffer[sizeof(Data)];
+		memset(buffer, '\0', sizeof(Data));
+		memcpy(buffer, &data, sizeof(Data));
+		splitAndSendAsPackets(buffer, sizeof(Data), to);
+
+		return true;
+	}
+
+	Data recieveData(sockaddr_in *from)
+	{
+
+		Data* data;
+		char buffer[sizeof(Data)];
+		recievePacketsToBuffer(buffer, sizeof(Data), from);
+		data = (Data *)buffer;
+
+		return *data;
+	};
+
 public:
+	UDP(void)
+	{
+		WSADATA wsa;
+		if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		{
+			cout << "Failed. Error Code : " << WSAGetLastError();
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	~UDP(void)
+	{
+		WSACleanup();
+	}
 	virtual bool SendData(Data data);
 	virtual Data RecieveData();
 };
