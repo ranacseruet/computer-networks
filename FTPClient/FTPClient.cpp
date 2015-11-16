@@ -106,7 +106,7 @@ void FTPClient::get()
 	{
 		Data resData;
 		resData = uc->RecieveData();
-		cout << resData.length << endl;
+		//cout << resData.length << endl;
 		fh->WriteFile(req.filename, resData.content, resData.length);
 		if (resData.isLastPacket) {
 			cout << "Last Packet Received." << endl;

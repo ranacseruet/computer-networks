@@ -13,8 +13,7 @@ typedef struct
 public class UDP
 {
 private:
-	int recieveSequenceNo = -1, sendingSequenceNo = 0;
-	
+
 	//Recieve a single UDP packet
 	UDPPacket recieveUDPPacket(sockaddr_in *from)
 	{
@@ -55,7 +54,7 @@ private:
 		//send acknowledgement
 		UDPPacket ackPack;
 		ackPack.handshake.seq = -1;
-		ackPack.handshake.ack = p.handshake.seq + 1;
+		ackPack.handshake.ack = p.handshake.seq;
 		if (!sendUDPPacket(ackPack, from))
 		{
 			cout << "Couldn't send the acknowledgement!" << endl;
@@ -87,7 +86,7 @@ private:
 			//get acknowledgement
 			UDPPacket ackPack = recieveUDPPacket(to);
 
-			if (ackPack.handshake.ack == p.handshake.seq + 1)
+			if (ackPack.handshake.ack == p.handshake.seq)
 			{
 				//success ack
 				//cout << "Got acknowledgement for packet #" << p.sequence << endl;
@@ -114,47 +113,45 @@ private:
 		}
 	}
 
+	int sendingSequenceNo = 0;
 	//Send UDP packet RELIABLY, reliable version of sendUDPPacket()
 	bool sendUDPPacketReliably(UDPPacket p, sockaddr_in *to)
 	{
 		int attempt = 5;
+		p.handshake.ack = -1;
+		p.handshake.seq = sendingSequenceNo;
+		sendingSequenceNo = ++sendingSequenceNo % ((2 * WINDOW_SIZE) + 1);
 		do
 		{
-			if (attempt < 5)
-			{
-				cout << "Resending packet #"<<p.handshake.seq << endl;
-			}
-			else
-			{
-				//cout << "Sending packet #" << p.sequence << endl;
-			}
+			//cout << ">>>>>>Sending Packet "<<p.handshake.seq<<endl;
 			sendUDPPacket(p, to);
-			attempt--;
-			if (attempt <=0)
+			if (recievePacketRecieptACK(p, to))
 			{
-				cout << "Max attempt failed. Give up packet #"<<p.handshake.seq <<endl;
+				//cout << "-----Reliable Send Completet-----"<<endl;
 				break;
 			}
-		} while (!recievePacketRecieptACK(p, to));		
-		return !(attempt <=0);
+		} while (attempt-- > 0);
+		return (attempt >0);
 	}
 
+	int recievedSequenceNo = -1;
 	//Recieve UDP packet RELIABLY, reliable version of recieveUDPPacket()
-	UDPPacket recieveUDPPacketReiably(int oldSeq, sockaddr_in *from)
+	UDPPacket recieveUDPPacketReiably(sockaddr_in *from)
 	{
 		UDPPacket packet;
-		//discard duplicate packets in loop
-		bool duplicate = false;
-		do
+		while (true)
 		{
-			if (duplicate)
-			{
-				cout << "recieved duplicate packet #" << packet.handshake.seq << endl;
-			}
+			//cout << "<<<<<<< Recieving Packet "<< endl;
+			memset(&packet, '\0', sizeof(UDPPacket));
 			packet = recieveUDPPacket(from);
 			sendPacketRecieptACK(packet, from);
-			duplicate = true;
-		} while (packet.handshake.seq == oldSeq);
+			if (packet.handshake.seq != recievedSequenceNo)
+			{
+				recievedSequenceNo = packet.handshake.seq;
+				//cout << "------- Recieved Packet Reliably #"<< packet.handshake.seq << endl;
+				break;
+			}
+		}
 		return packet;
 	}
 
@@ -164,35 +161,28 @@ protected:
 	struct sockaddr_in server, client;
 	SOCKET socketHandle;
 
-	void splitAndSendAsPackets(char *buffer, int size, sockaddr_in *to)
+	bool splitAndSendAsPackets(char *buffer, int size, sockaddr_in *to)
 	{
 		UDPPacket packet;
 		//window size 1
-		sendingSequenceNo = ++sendingSequenceNo % 3;
-		packet.handshake.ack = -1;
-		packet.handshake.seq = sendingSequenceNo;
 		if (PACKET_LENGTH >= size)
 		{
 			//can be sent in one single packet
 			memset(packet.content, '\0', PACKET_LENGTH);
 			memcpy(packet.content, buffer, size);
 			//TODO check packet status, if false return error
-			if (!sendUDPPacketReliably(packet, to))
-			{
-				cout << "reliable send of packet failed" << endl;
-			}
+			return sendUDPPacketReliably(packet, to);
 			//cout << "Sent single Packet " << ". Seq#" << packet.sequence << endl;
 		}
 		else
 		{
+			cout << "spliting as multiple packets and send" << endl;
 			int numOfPacketsToToSend = (int)(size / PACKET_LENGTH) + 1;
 			int dataOffset = 0;
 			for (int i = 0; i < numOfPacketsToToSend; i++)
 			{
 				memset(packet.content, '\0', PACKET_LENGTH);
 				//window size 1
-				sendingSequenceNo = ++sendingSequenceNo % 3;
-				packet.handshake.seq = sendingSequenceNo;
 				int copySize = PACKET_LENGTH;
 				if ((size - dataOffset) < PACKET_LENGTH)
 				{
@@ -203,7 +193,7 @@ protected:
 				if (!sendUDPPacketReliably(packet, to))
 				{
 					cout << "reliable send of packet failed! exiting." << endl;
-					break;
+					return false;
 				}
 				//cout << "Sent Packet. Seq#" << packet.sequence << endl;
 				dataOffset += copySize;
@@ -216,13 +206,12 @@ protected:
 		UDPPacket packet;
 		memset(buffer, '\0', size);
 		//window size 1
-		recieveSequenceNo = ++recieveSequenceNo % 3;
-		int oldSeq = recieveSequenceNo;
 		if (PACKET_LENGTH >= size)
 		{
 			//can be recieved as one single packet
 			//discarding duplicate packets
-			packet = recieveUDPPacketReiably(oldSeq, from);
+			memset(packet.content, '\0', PACKET_LENGTH);
+			packet = recieveUDPPacketReiably(from);
 			//cout << "Recieved packet with seq# " << packet.sequence << endl;
 			memcpy(buffer, packet.content, size);
 		}
@@ -235,19 +224,16 @@ protected:
 			{
 				//recieve packets and add to data references
 				memset(packet.content, '\0', PACKET_LENGTH);
-				packet = recieveUDPPacketReiably(oldSeq, from);
-				//window size 1
-				recieveSequenceNo = ++recieveSequenceNo % 3;
-				oldSeq = recieveSequenceNo;
+				packet = recieveUDPPacketReiably(from);
 
-				int copySize = PACKET_LENGTH;
+				int recievedContentLength = PACKET_LENGTH;
 				if ((size - bufferOffset) < PACKET_LENGTH)
 				{
-					copySize = (size - bufferOffset);
+					recievedContentLength = (size - bufferOffset);
 				}
-				memcpy((void *)(buffer + bufferOffset), packet.content, copySize);
-				bufferOffset += copySize;
-				//cout << "Recieved Packet " << packet.sequence <<"Size: "<<copySize<< endl;
+				memcpy((void *)(buffer + bufferOffset), packet.content, recievedContentLength);
+				bufferOffset += recievedContentLength;
+				cout << "Recieved Packet " << packet.handshake.seq <<"Size: "<<recievedContentLength<< endl;
 			}
 		}
 	}
@@ -280,9 +266,7 @@ protected:
 		char buffer[sizeof(Data)];
 		memset(buffer, '\0', sizeof(Data));
 		memcpy(buffer, &data, sizeof(Data));
-		splitAndSendAsPackets(buffer, sizeof(Data), to);
-
-		return true;
+		return splitAndSendAsPackets(buffer, sizeof(Data), to);
 	}
 
 	Data recieveData(sockaddr_in *from)
