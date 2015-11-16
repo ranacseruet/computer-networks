@@ -1,7 +1,7 @@
 #include "Common.h"
 
 //-----Only to be used by UDP class internally
-#define PACKET_LENGTH 480
+#define PACKET_LENGTH 100
 typedef struct
 {
 	Handshake handshake;
