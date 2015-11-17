@@ -12,6 +12,7 @@ private:
 	Handshake handsahke;
 	FileHelper * fh;
 	Logger *logger;
+	string fileList;
 
 public:
 	FTPClient();

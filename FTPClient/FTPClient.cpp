@@ -1,4 +1,5 @@
 #include "FTPClient.h"
+#include <sstream>
 
 using namespace std;
 
@@ -64,6 +65,10 @@ void FTPClient::list()
 	//Receive Request
 	Response res = uc->RecieveResponse();
 	logger->Log("List Response recieved from the server");
+	stringstream ss;
+	ss << res.message;
+	ss >> fileList;
+
 	cout << res.message << endl;
 	uc->CloseConnection();
 }
@@ -86,6 +91,22 @@ void FTPClient::get()
 	getline(cin, fileName);
 	strcpy(req.filename, fileName.c_str());
 
+	//check local that file exists or not
+	FileHelper * fh = new FileHelper("\\client_data\\");
+
+	if (fh->DoesFileExist(req.filename)) {
+		cout << "Please type y to overrite OR type n" << endl;
+		char flag;
+		cin >> flag;
+
+		if (flag == 'y') {
+			fh->DeleteFile(req.filename);
+		}
+		else {
+			return;
+		}
+	}
+
 	req.type = REQ_GET;
 	req.handshake.ack = handshake_value;
 
@@ -106,7 +127,11 @@ void FTPClient::get()
 	{
 		Data resData;
 		resData = uc->RecieveData();
-		//cout << resData.length << endl;
+		
+		char logMessage[100] = { '\0' };
+		sprintf(logMessage, "Receive data length: %d\n", resData.length);
+		logger->Log(logMessage);
+
 		fh->WriteFile(req.filename, resData.content, resData.length);
 		if (resData.isLastPacket) {
 			cout << "Last Packet Received." << endl;
@@ -129,6 +154,17 @@ void FTPClient::put()
 	memset(&req, '\0', sizeof(req));
 	getline(cin, fileName);
 	strcpy(req.filename, fileName.c_str());
+
+	size_t found = fileList.find(fileName.c_str());
+
+	if (found) {
+		cout << "File already exists in server. If you want to overrite please type y or n to cancel." << endl;
+		char flag;
+		cin >> flag;
+		if (flag == 'n') {
+			return;
+		}
+	}
 
 	int handshake_value = handshake();
 	req.type = REQ_PUT;
