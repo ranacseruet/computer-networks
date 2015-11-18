@@ -55,7 +55,7 @@ bool UDPClient::SendRequest(Request req)
 	memcpy(buffer, &req, sizeof(Request));
 	
 	splitAndSendAsPackets(buffer, sizeof(Request), &server);
-
+	cout << "Request " << req.type << " sent!" << endl;
 	return true;
 };
 
@@ -78,6 +78,7 @@ Response UDPClient::RecieveResponse()
 	char buffer[sizeof(Response)];
 	recievePacketsToBuffer(buffer, sizeof(Response), &server);
 	ptr = (Response *)buffer;
+	cout << "Response type " << ptr->type << " recieved!" << endl;
 
 	return *ptr;
 };

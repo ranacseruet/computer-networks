@@ -1,7 +1,7 @@
 #include "Common.h"
 
 //-----Only to be used by UDP class internally
-#define PACKET_LENGTH 100
+#define PACKET_LENGTH 512
 typedef struct
 {
 	Handshake handshake;
@@ -117,17 +117,20 @@ private:
 	//Send UDP packet RELIABLY, reliable version of sendUDPPacket()
 	bool sendUDPPacketReliably(UDPPacket p, sockaddr_in *to)
 	{
-		int attempt = 5;
+		int attempt = MAX_TRIES;
 		p.handshake.ack = -1;
 		p.handshake.seq = sendingSequenceNo;
 		sendingSequenceNo = ++sendingSequenceNo % ((2 * WINDOW_SIZE) + 1);
 		do
 		{
-			//cout << ">>>>>>Sending Packet "<<p.handshake.seq<<endl;
+			if (attempt < MAX_TRIES)
+			{
+				cout << "!!!Resending Packet. Seq#" << p.handshake.seq << endl;
+			}
 			sendUDPPacket(p, to);
 			if (recievePacketRecieptACK(p, to))
 			{
-				//cout << "-----Reliable Send Completet-----"<<endl;
+				cout << ">>>Sent Packet. Seq#" << p.handshake.seq << endl;
 				break;
 			}
 		} while (attempt-- > 0);
@@ -148,8 +151,12 @@ private:
 			if (packet.handshake.seq != recievedSequenceNo)
 			{
 				recievedSequenceNo = packet.handshake.seq;
-				//cout << "------- Recieved Packet Reliably #"<< packet.handshake.seq << endl;
+				cout << "<<<Recieved Packet " << packet.handshake.seq<< endl;
 				break;
+			}
+			else
+			{
+				cout << "!!!Recieved Duplicate Packet " << packet.handshake.seq << ". Discarding!!!" << endl;
 			}
 		}
 		return packet;
@@ -165,39 +172,29 @@ protected:
 	{
 		UDPPacket packet;
 		//window size 1
-		if (PACKET_LENGTH >= size)
-		{
-			//can be sent in one single packet
-			memset(packet.content, '\0', PACKET_LENGTH);
-			memcpy(packet.content, buffer, size);
-			//TODO check packet status, if false return error
-			return sendUDPPacketReliably(packet, to);
-			//cout << "Sent single Packet " << ". Seq#" << packet.sequence << endl;
+		//cout << "spliting as multiple packets and send" << endl;
+		int numOfPacketsToToSend = (int)(size / PACKET_LENGTH);
+		if (numOfPacketsToToSend <= 0) {
+			numOfPacketsToToSend = 1;
 		}
-		else
+		int dataOffset = 0;
+		for (int i = 0; i < numOfPacketsToToSend; i++)
 		{
-			cout << "spliting as multiple packets and send" << endl;
-			int numOfPacketsToToSend = (int)(size / PACKET_LENGTH) + 1;
-			int dataOffset = 0;
-			for (int i = 0; i < numOfPacketsToToSend; i++)
+			memset(packet.content, '\0', PACKET_LENGTH);
+			//window size 1
+			int copySize = PACKET_LENGTH;
+			if ((size - dataOffset) < PACKET_LENGTH)
 			{
-				memset(packet.content, '\0', PACKET_LENGTH);
-				//window size 1
-				int copySize = PACKET_LENGTH;
-				if ((size - dataOffset) < PACKET_LENGTH)
-				{
-					copySize = (size - dataOffset);
-				}
-				memcpy(packet.content, buffer + dataOffset, copySize);
-				//TODO check packet status, if false return error
-				if (!sendUDPPacketReliably(packet, to))
-				{
-					cout << "reliable send of packet failed! exiting." << endl;
-					return false;
-				}
-				//cout << "Sent Packet. Seq#" << packet.sequence << endl;
-				dataOffset += copySize;
+				copySize = (size - dataOffset);
 			}
+			memcpy(packet.content, buffer + dataOffset, copySize);
+			//TODO check packet status, if false return error
+			if (!sendUDPPacketReliably(packet, to))
+			{
+				cout << "reliable send of packet failed! exiting." << endl;
+				return false;
+			}
+			dataOffset += copySize;
 		}
 	}
 	
@@ -206,35 +203,26 @@ protected:
 		UDPPacket packet;
 		memset(buffer, '\0', size);
 		//window size 1
-		if (PACKET_LENGTH >= size)
+		int numOfPacketsToRecieve = (int)(size / PACKET_LENGTH);
+		if (numOfPacketsToRecieve <= 0) {
+			numOfPacketsToRecieve = 1;
+		}
+		int bufferOffset = 0;
+		//cout << "Waiting for Packets# " << numOfPacketsToRecieve << endl;
+		for (int i = 0; i < numOfPacketsToRecieve; i++)
 		{
-			//can be recieved as one single packet
-			//discarding duplicate packets
+			//recieve packets and add to data references
 			memset(packet.content, '\0', PACKET_LENGTH);
 			packet = recieveUDPPacketReiably(from);
-			//cout << "Recieved packet with seq# " << packet.sequence << endl;
-			memcpy(buffer, packet.content, size);
-		}
-		else
-		{
-			int numOfPacketsToRecieve = (int)(size / PACKET_LENGTH) + 1;
-			int bufferOffset = 0;
-			//cout << "Waiting for Packets# " << numOfPacketsToRecieve << endl;
-			for (int i = 0; i < numOfPacketsToRecieve; i++)
-			{
-				//recieve packets and add to data references
-				memset(packet.content, '\0', PACKET_LENGTH);
-				packet = recieveUDPPacketReiably(from);
 
-				int recievedContentLength = PACKET_LENGTH;
-				if ((size - bufferOffset) < PACKET_LENGTH)
-				{
-					recievedContentLength = (size - bufferOffset);
-				}
-				memcpy((void *)(buffer + bufferOffset), packet.content, recievedContentLength);
-				bufferOffset += recievedContentLength;
-				cout << "Recieved Packet " << packet.handshake.seq <<"Size: "<<recievedContentLength<< endl;
+			int recievedContentLength = PACKET_LENGTH;
+			if ((size - bufferOffset) < PACKET_LENGTH)
+			{
+				recievedContentLength = (size - bufferOffset);
 			}
+			memcpy((void *)(buffer + bufferOffset), packet.content, recievedContentLength);
+			bufferOffset += recievedContentLength;
+			//cout << "<<<Recieved Packet " << packet.handshake.seq <<"Size: "<<recievedContentLength<< endl;
 		}
 	}
 

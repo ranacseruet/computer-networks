@@ -12,9 +12,10 @@
 
 #define HOSTNAME_LENGTH 20
 #define RESP_LENGTH 140
-#define DATA_LENGTH 300
+#define DATA_LENGTH 1016
 #define FILENAME_LENGTH 80
 #define WINDOW_SIZE 1
+#define MAX_TRIES 20
 
 using namespace std;
 
