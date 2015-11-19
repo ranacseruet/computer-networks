@@ -24,7 +24,7 @@ Request UDPServer::RecieveRequest(int expectedAck)
 	slen = sizeof(client);
 
 	char buffer[sizeof(Request)];
-	recievePacketsToBuffer(buffer, sizeof(Request), &client);
+	recieveAsPackets(buffer, sizeof(Request), &client);
 	Request *request = (Request *)buffer;
 
 	if (request->handshake.ack != expectedAck)
@@ -44,7 +44,7 @@ bool UDPServer::SendResponse(Response response)
 	memset(buffer, '\0', sizeof(Response));
 	memcpy(buffer, &response, sizeof(Response));
 
-	splitAndSendAsPackets(buffer, sizeof(Response), &client);
+	sendAsPackets(buffer, sizeof(Response), &client);
 	logger->Log("Sent response.\n");
 
 	return true;
@@ -66,7 +66,7 @@ Handshake UDPServer::recieveHandshakeRequest()
 
 	slen = sizeof(client);
 	char buffer[sizeof(Handshake)];
-	recievePacketsToBuffer(buffer, sizeof(Handshake), &client);
+	recieveAsPackets(buffer, sizeof(Handshake), &client);
 	Handshake *hsReq = (Handshake *)buffer;
 	
 	char logMessage[100] = { '\0' };
@@ -82,7 +82,7 @@ bool UDPServer::sendHandshakeResponse(Handshake hs)
 	memset(buffer, '\0', sizeof(Handshake));
 	memcpy(buffer, &hs, sizeof(Handshake));
 
-	splitAndSendAsPackets(buffer, sizeof(Handshake), &client);
+	sendAsPackets(buffer, sizeof(Handshake), &client);
 	
 	char logMessage[100] = { '\0' };
 	sprintf(logMessage, "Sent handshake response. Ack# %d and Own Sequence# %d \n", hs.ack, hs.seq);

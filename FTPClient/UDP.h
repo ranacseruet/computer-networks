@@ -168,7 +168,7 @@ protected:
 	struct sockaddr_in server, client;
 	SOCKET socketHandle;
 
-	bool splitAndSendAsPackets(char *buffer, int size, sockaddr_in *to)
+	bool sendAsPackets(char *buffer, int size, sockaddr_in *to)
 	{
 		UDPPacket packet;
 		//window size 1
@@ -198,7 +198,7 @@ protected:
 		}
 	}
 	
-	void recievePacketsToBuffer(char *buffer, int size, sockaddr_in *from)
+	void recieveAsPackets(char *buffer, int size, sockaddr_in *from)
 	{
 		UDPPacket packet;
 		memset(buffer, '\0', size);
@@ -254,7 +254,7 @@ protected:
 		char buffer[sizeof(Data)];
 		memset(buffer, '\0', sizeof(Data));
 		memcpy(buffer, &data, sizeof(Data));
-		return splitAndSendAsPackets(buffer, sizeof(Data), to);
+		return sendAsPackets(buffer, sizeof(Data), to);
 	}
 
 	Data recieveData(sockaddr_in *from)
@@ -262,7 +262,7 @@ protected:
 
 		Data* data;
 		char buffer[sizeof(Data)];
-		recievePacketsToBuffer(buffer, sizeof(Data), from);
+		recieveAsPackets(buffer, sizeof(Data), from);
 		data = (Data *)buffer;
 
 		return *data;

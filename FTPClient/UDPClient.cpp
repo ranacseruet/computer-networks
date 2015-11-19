@@ -54,7 +54,7 @@ bool UDPClient::SendRequest(Request req)
 	memset(buffer, '\0', sizeof(Request));
 	memcpy(buffer, &req, sizeof(Request));
 	
-	splitAndSendAsPackets(buffer, sizeof(Request), &server);
+	sendAsPackets(buffer, sizeof(Request), &server);
 	cout << "Request " << req.type << " sent!" << endl;
 	return true;
 };
@@ -65,7 +65,7 @@ bool UDPClient::SendHandshakeRequest(Handshake req)
 	memset(buffer, '\0', sizeof(Handshake));
 	memcpy(buffer, &req, sizeof(req));
 
-	splitAndSendAsPackets(buffer, sizeof(Handshake), &server);
+	sendAsPackets(buffer, sizeof(Handshake), &server);
 
 	return true;
 }
@@ -76,7 +76,7 @@ Response UDPClient::RecieveResponse()
 	int fromLength = sizeof(server);
 
 	char buffer[sizeof(Response)];
-	recievePacketsToBuffer(buffer, sizeof(Response), &server);
+	recieveAsPackets(buffer, sizeof(Response), &server);
 	ptr = (Response *)buffer;
 	cout << "Response type " << ptr->type << " recieved!" << endl;
 
@@ -89,7 +89,7 @@ Handshake UDPClient::RecieveHandshakeResponse()
 	int fromLength = sizeof(server);
 
 	char buffer[sizeof(Handshake)];
-	recievePacketsToBuffer(buffer, sizeof(Handshake), &server);
+	recieveAsPackets(buffer, sizeof(Handshake), &server);
 	ptr = (Handshake *)buffer;
 
 	return *ptr;
