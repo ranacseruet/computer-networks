@@ -252,18 +252,9 @@ int main(void)
 
 	/*Data data;
 	long pos = 0;
-	while (true)
-	{
-		data = udpServer->RecieveData();
-		helper->WriteFile("reliable.jpg", data.content);
-		//cout << "File data recieved:" << strlen(data.content) << " bytes" << endl;
-
-		if (data.isLastPacket)
-		{
-			cout << "This was last packet" << endl;
-			break;
-		}
-	}*/
+	
+	data = udpServer->RecieveData();
+	cout << data.content;*/
 
 	int i;
 	cin >> i;

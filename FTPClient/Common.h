@@ -15,6 +15,7 @@
 #define DATA_LENGTH 1016
 #define FILENAME_LENGTH 80
 #define WINDOW_SIZE 1
+#define SEQUENCE_RANGE ((2 * WINDOW_SIZE) + 1)
 #define MAX_TRIES 20
 
 using namespace std;
@@ -76,7 +77,7 @@ public:
 
 	void Log(string message)
 	{
-		Log(message, false);
+		Log(message, true);
 	}
 
 	void Log(string message, bool printConsole)

@@ -369,30 +369,10 @@ int main()
 
 
 	FileHelper *fh = new FileHelper("\\client_data\\");
-	char dataStream[DATA_LENGTH];
-	memset(dataStream, '\0', DATA_LENGTH);
-	long pos = 0;
-	while (1)
-	{
-		Data data;
-		memset(dataStream, '\0', DATA_LENGTH);
-		memset(data.content, '\0', DATA_LENGTH);
-		int numOfBytesRead = 0;
-		bool lastPacket = !fh->ReadFile("test3.jpg", pos, dataStream, &numOfBytesRead);
-		cout << "Bytes read: " << numOfBytesRead << endl;
-		memcpy(data.content, dataStream, numOfBytesRead);
-		data.isLastPacket = lastPacket;
-		udpClient->SendData(data);
-		//cout << "File read:" << strlen(dataStream) << " bytes" << endl;
-		if (lastPacket)
-		{
-			cout << "This was last packet" << endl;
-			break;
-		}
-		pos += numOfBytesRead;
-	}
-
-	//udpClient->SendData(data);
+	Data data;
+	memset(data.content, '\0', sizeof(Data));
+	memcpy(data.content, "aslkdjaksjdsakljdklasjdlkasjdklsajd", sizeof(Data));
+	udpClient->SendData(data);
 	udpClient->CloseConnection();*/
 	int i;
 	cin >> i;

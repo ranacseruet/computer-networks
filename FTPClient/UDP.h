@@ -66,7 +66,8 @@ private:
 		}
 		return true;
 	}
-
+	
+	
 	//Send acknowledgement of recieved packet
 	bool sendPacketRecieptACK(UDPPacket p, sockaddr_in *from)
 	{
@@ -87,7 +88,7 @@ private:
 	}
 
 	//recieve acknowledgement of sent packet
-	bool recievePacketRecieptACK(UDPPacket p, sockaddr_in *to)
+	/*bool recievePacketRecieptACK(UDPPacket p, sockaddr_in *to)
 	{
 		struct timeval tv;
 		tv.tv_sec = 1;
@@ -180,6 +181,7 @@ private:
 		}
 		return packet;
 	}
+	*/
 
 protected:
 
@@ -296,32 +298,193 @@ public:
 	virtual bool SendData(Data data);
 	virtual Data RecieveData();
 
-	bool sendAsPacketsSR(char *buffer, int size, sockaddr_in *to)
+	int indexFromSequenceNo(int firstSequence, int currentSequence)
 	{
-		UDPPacket packet;
-		//window size 1
-		int dataOffset = 0;
-		for (int i = 0; i < calculateNumOfPackets(size); i++, dataOffset += currentPacketContentSize(size, dataOffset))
+		for (int i = 0; i < WINDOW_SIZE; i++)
 		{
-			memset(packet.content, '\0', PACKET_LENGTH);
-			memcpy(packet.content, buffer + dataOffset, currentPacketContentSize(size, dataOffset));
-			//TODO check packet status, if false return error
-			if (!sendUDPPacketReliably(packet, to))
+			if ((firstSequence + i) % SEQUENCE_RANGE == currentSequence)
 			{
-				cout << "reliable send of packet failed! exiting." << endl;
-				return false;
+				return i;
 			}
 		}
+		return -1;
+	}
+
+	int waitForPacket(sockaddr_in *to)
+	{
+		struct timeval tv;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+
+		fd_set readfds;
+		FD_ZERO(&readfds);
+		FD_SET(socketHandle, &readfds);
+
+		return select(socketHandle + 1, &readfds, NULL, NULL, &tv);
+	}
+
+	bool sendAsPacketsSR(char *buffer, int size, sockaddr_in *to)
+	{
+		//window size 1
+		bool ackFlag[WINDOW_SIZE] = { false };
+		int dataOffset = 0, numOfPackets = calculateNumOfPackets(size);
+		for (int i = 0; i < numOfPackets; i++, dataOffset += currentPacketContentSize(size, dataOffset))
+		{
+			//shift flags
+			for (int k = 0; k < WINDOW_SIZE; k++)
+			{
+				if (k + 1 < WINDOW_SIZE)
+				{
+					ackFlag[k] = ackFlag[k + 1];
+				}
+				else
+				{
+					ackFlag[k] = false;
+				}
+			}
+
+			int tempOffset = dataOffset;
+			//prepare packets
+			UDPPacket packets[WINDOW_SIZE];
+			for (int j = i; j < i + WINDOW_SIZE; j++, tempOffset += currentPacketContentSize(size, tempOffset))
+			{
+				memset(packets[j - i].content, '\0', PACKET_LENGTH);
+				memcpy(packets[j - i].content, buffer + tempOffset, currentPacketContentSize(size, tempOffset));
+				packets[j - i].handshake.seq = j%SEQUENCE_RANGE;
+				//cout << "Current i value: " << i << " and j=" << j << " seq: " << j%SEQUENCE_RANGE <<" Seq range limit: "<< SEQUENCE_RANGE << endl;
+				//cout << "packet#" << packets[j - i].handshake.seq << " content: " << packets[j - i].content << endl;
+			}
+
+			int firstSequence = i % SEQUENCE_RANGE, effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
+
+			for (int j = i; j < i + WINDOW_SIZE; j++)
+			{
+				if (!ackFlag[j - i])
+				{
+					if (sendUDPPacket(packets[j - i], to))
+					{
+						cout << "Sent Packet With Sequence#" << packets[j-i].handshake.seq << endl;
+					}
+				}
+			}
+
+			while (true)
+			{
+				//TODO MAX TRY and return false if doesn't work
+				
+				int gotFirstPacketAck = false;
+				for (int j = i; j < i + WINDOW_SIZE; j++)
+				{
+					//no need to wait if already go acks for this packet
+					if (ackFlag[j - i])
+					{
+						//if this is first in window packet, gotta move window
+						if (j - i == 0)
+						{
+							gotFirstPacketAck = true;
+							break;
+						}
+						else
+						{
+							continue;
+						}
+					}
+					int numOfAcks = waitForPacket(to);
+					if (numOfAcks > 0)
+					{
+						for (int k = 0; k < numOfAcks; k++)
+						{
+							UDPPacket ackPacket = recieveUDPPacket(to);
+							int curPacketIndex = indexFromSequenceNo(firstSequence, ackPacket.handshake.ack);
+							if (curPacketIndex < 0 || curPacketIndex > effectiveWindowsize - 1)
+							{
+								//out of bound acks, discard
+								cout << "Out of Bound Ack#" << ackPacket.handshake.ack << ".Discarding!!!" << endl;
+								continue;
+							}
+							else
+							{
+								ackFlag[curPacketIndex] = true;
+							}
+							if (firstSequence == ackPacket.handshake.ack)
+							{
+								gotFirstPacketAck = true;
+							}
+						}
+						//read acks
+					}
+					else if (numOfAcks == 0)
+					{
+						//timeout for packet j resend it
+						if (sendUDPPacket(packets[j - i], to))
+						{
+							cout << "!!!Timeout for Packet With Sequence#" << packets[j - i].handshake.seq << ".Resent!!!" << endl;
+						}
+					}
+					else if (numOfAcks < 0)
+					{
+						cout << "Timer Error!" << endl;
+					}
+					if (gotFirstPacketAck)break;
+				}
+				if (gotFirstPacketAck)break;
+			}
+		}
+		return true;
 	}
 
 	void recieveAsPacketsSR(char *buffer, int size, sockaddr_in *from)
 	{
 		memset(buffer, '\0', size);
-		int bufferOffset = 0;
-		for (int i = 0; i < calculateNumOfPackets(size); i++, bufferOffset += currentPacketContentSize(size, bufferOffset))
+		int bufferOffset = 0, numOfPackets = calculateNumOfPackets(size);
+		bool recievedFlag[WINDOW_SIZE] = { false };
+		for (int i = 0, windowEnd = WINDOW_SIZE; i < numOfPackets; i++, windowEnd++, bufferOffset += currentPacketContentSize(size, bufferOffset))
 		{
-			UDPPacket packet = recieveUDPPacketReiably(from);
-			memcpy((void *)(buffer + bufferOffset), packet.content, currentPacketContentSize(size, bufferOffset));
+			//shift recievedFlags
+			for (int k = 0; k < WINDOW_SIZE; k++)
+			{
+				if (k + 1 < WINDOW_SIZE)
+				{
+					recievedFlag[k] = recievedFlag[k + 1];
+				}
+				else
+				{
+					recievedFlag[k] = false;
+				}
+			}
+			int tempOffset = bufferOffset;
+			int firstSequence = i % SEQUENCE_RANGE, effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
+			while (true)
+			{
+				UDPPacket packet = recieveUDPPacket(from);
+				sendPacketRecieptACK(packet, from);
+				int curPacketIndex = indexFromSequenceNo(firstSequence, packet.handshake.seq);
+				if (curPacketIndex < 0 || curPacketIndex > effectiveWindowsize - 1)
+				{
+					//out of bound packet, discard
+					cout << "!!!!Out Of Bound packet. #" << packet.handshake.seq<<" Discarding"<<endl;
+					continue;
+				}
+
+				if (!recievedFlag[curPacketIndex])
+				{
+					//TODO shouldn't recieve from outside of window frame
+					recievedFlag[curPacketIndex] = true;
+					memcpy((void *)(buffer + tempOffset), packet.content, currentPacketContentSize(size, tempOffset));
+					tempOffset += currentPacketContentSize(size, tempOffset);
+				}
+				else
+				{
+					//Duplicate packet
+					cout << "!!!!Duplicate packet. #" << packet.handshake.seq << endl;
+				}
+
+				if (firstSequence == packet.handshake.seq)
+				{
+					//if first packet of frame, continue loop
+					break;
+				}
+			}
 		}
 	}
 };
