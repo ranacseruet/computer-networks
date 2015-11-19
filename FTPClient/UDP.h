@@ -343,10 +343,10 @@ public:
 				}
 			}
 
-			int tempOffset = dataOffset;
+			int tempOffset = dataOffset, effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
 			//prepare packets
 			UDPPacket packets[WINDOW_SIZE];
-			for (int j = i; j < i + WINDOW_SIZE; j++, tempOffset += currentPacketContentSize(size, tempOffset))
+			for (int j = i; j < i + effectiveWindowsize; j++, tempOffset += currentPacketContentSize(size, tempOffset))
 			{
 				memset(packets[j - i].content, '\0', PACKET_LENGTH);
 				memcpy(packets[j - i].content, buffer + tempOffset, currentPacketContentSize(size, tempOffset));
@@ -355,9 +355,9 @@ public:
 				//cout << "packet#" << packets[j - i].handshake.seq << " content: " << packets[j - i].content << endl;
 			}
 
-			int firstSequence = i % SEQUENCE_RANGE, effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
+			int firstSequence = i % SEQUENCE_RANGE;
 
-			for (int j = i; j < i + WINDOW_SIZE; j++)
+			for (int j = i; j < i + effectiveWindowsize; j++)
 			{
 				if (!ackFlag[j - i])
 				{
@@ -373,7 +373,7 @@ public:
 				//TODO MAX TRY and return false if doesn't work
 				
 				int gotFirstPacketAck = false;
-				for (int j = i; j < i + WINDOW_SIZE; j++)
+				for (int j = i; j < i + effectiveWindowsize; j++)
 				{
 					//no need to wait if already go acks for this packet
 					if (ackFlag[j - i])
@@ -438,12 +438,13 @@ public:
 		memset(buffer, '\0', size);
 		int bufferOffset = 0, numOfPackets = calculateNumOfPackets(size);
 		bool recievedFlag[WINDOW_SIZE] = { false };
-		for (int i = 0, windowEnd = WINDOW_SIZE; i < numOfPackets; i++, windowEnd++, bufferOffset += currentPacketContentSize(size, bufferOffset))
+		for (int i = 0; i < numOfPackets; i++, bufferOffset += currentPacketContentSize(size, bufferOffset))
 		{
+			int effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
 			//shift recievedFlags
-			for (int k = 0; k < WINDOW_SIZE; k++)
+			for (int k = 0; k < effectiveWindowsize; k++)
 			{
-				if (k + 1 < WINDOW_SIZE)
+				if (k + 1 < effectiveWindowsize)
 				{
 					recievedFlag[k] = recievedFlag[k + 1];
 				}
@@ -453,7 +454,7 @@ public:
 				}
 			}
 			int tempOffset = bufferOffset;
-			int firstSequence = i % SEQUENCE_RANGE, effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
+			int firstSequence = i % SEQUENCE_RANGE;
 			while (true)
 			{
 				UDPPacket packet = recieveUDPPacket(from);
