@@ -14,6 +14,25 @@ public class UDP
 {
 private:
 
+	int calculateNumOfPackets(int size)
+	{
+		int numOfPackets = (int)(size / PACKET_LENGTH);
+		if (numOfPackets <= 0) {
+			numOfPackets = 1;
+		}
+		return numOfPackets;
+	}
+
+	int currentPacketContentSize(int size, int dataOffset)
+	{
+		int contentSize = PACKET_LENGTH;
+		if ((size - dataOffset) < PACKET_LENGTH)
+		{
+			contentSize = (size - dataOffset);
+		}
+		return contentSize;
+	}
+
 	//Recieve a single UDP packet
 	UDPPacket recieveUDPPacket(sockaddr_in *from)
 	{
@@ -168,17 +187,12 @@ protected:
 	struct sockaddr_in server, client;
 	SOCKET socketHandle;
 
-	bool sendAsPackets(char *buffer, int size, sockaddr_in *to)
+	/*bool sendAsPackets(char *buffer, int size, sockaddr_in *to)
 	{
 		UDPPacket packet;
 		//window size 1
-		//cout << "spliting as multiple packets and send" << endl;
-		int numOfPacketsToToSend = (int)(size / PACKET_LENGTH);
-		if (numOfPacketsToToSend <= 0) {
-			numOfPacketsToToSend = 1;
-		}
 		int dataOffset = 0;
-		for (int i = 0; i < numOfPacketsToToSend; i++)
+		for (int i = 0; i < calculateNumOfPackets(size); i++)
 		{
 			memset(packet.content, '\0', PACKET_LENGTH);
 			//window size 1
@@ -203,13 +217,9 @@ protected:
 		UDPPacket packet;
 		memset(buffer, '\0', size);
 		//window size 1
-		int numOfPacketsToRecieve = (int)(size / PACKET_LENGTH);
-		if (numOfPacketsToRecieve <= 0) {
-			numOfPacketsToRecieve = 1;
-		}
 		int bufferOffset = 0;
 		//cout << "Waiting for Packets# " << numOfPacketsToRecieve << endl;
-		for (int i = 0; i < numOfPacketsToRecieve; i++)
+		for (int i = 0; i < calculateNumOfPackets(size); i++)
 		{
 			//recieve packets and add to data references
 			memset(packet.content, '\0', PACKET_LENGTH);
@@ -224,7 +234,7 @@ protected:
 			bufferOffset += recievedContentLength;
 			//cout << "<<<Recieved Packet " << packet.handshake.seq <<"Size: "<<recievedContentLength<< endl;
 		}
-	}
+	}*/
 
 	bool createAndBindSocketConnection(sockaddr_in *address, int port)
 	{
@@ -254,7 +264,7 @@ protected:
 		char buffer[sizeof(Data)];
 		memset(buffer, '\0', sizeof(Data));
 		memcpy(buffer, &data, sizeof(Data));
-		return sendAsPackets(buffer, sizeof(Data), to);
+		return sendAsPacketsSR(buffer, sizeof(Data), to);
 	}
 
 	Data recieveData(sockaddr_in *from)
@@ -262,7 +272,7 @@ protected:
 
 		Data* data;
 		char buffer[sizeof(Data)];
-		recieveAsPackets(buffer, sizeof(Data), from);
+		recieveAsPacketsSR(buffer, sizeof(Data), from);
 		data = (Data *)buffer;
 
 		return *data;
@@ -285,4 +295,33 @@ public:
 	}
 	virtual bool SendData(Data data);
 	virtual Data RecieveData();
+
+	bool sendAsPacketsSR(char *buffer, int size, sockaddr_in *to)
+	{
+		UDPPacket packet;
+		//window size 1
+		int dataOffset = 0;
+		for (int i = 0; i < calculateNumOfPackets(size); i++, dataOffset += currentPacketContentSize(size, dataOffset))
+		{
+			memset(packet.content, '\0', PACKET_LENGTH);
+			memcpy(packet.content, buffer + dataOffset, currentPacketContentSize(size, dataOffset));
+			//TODO check packet status, if false return error
+			if (!sendUDPPacketReliably(packet, to))
+			{
+				cout << "reliable send of packet failed! exiting." << endl;
+				return false;
+			}
+		}
+	}
+
+	void recieveAsPacketsSR(char *buffer, int size, sockaddr_in *from)
+	{
+		memset(buffer, '\0', size);
+		int bufferOffset = 0;
+		for (int i = 0; i < calculateNumOfPackets(size); i++, bufferOffset += currentPacketContentSize(size, bufferOffset))
+		{
+			UDPPacket packet = recieveUDPPacketReiably(from);
+			memcpy((void *)(buffer + bufferOffset), packet.content, currentPacketContentSize(size, bufferOffset));
+		}
+	}
 };
