@@ -6,6 +6,7 @@ typedef struct
 {
 	Handshake handshake;
 	char content[PACKET_LENGTH];
+	int length;
 }UDPPacket;
 //----- UDP packet specific settings
 
@@ -31,6 +32,21 @@ private:
 			contentSize = (size - dataOffset);
 		}
 		return contentSize;
+	}
+
+	void shiftWindowFlags(bool ackFlag[], int effectiveWindowsize)
+	{
+		for (int k = 0; k < effectiveWindowsize; k++)
+		{
+			if (k + 1 < effectiveWindowsize)
+			{
+				ackFlag[k] = ackFlag[k + 1];
+			}
+			else
+			{
+				ackFlag[k] = false;
+			}
+		}
 	}
 
 	//Recieve a single UDP packet
@@ -75,6 +91,10 @@ private:
 		UDPPacket ackPack;
 		ackPack.handshake.seq = -1;
 		ackPack.handshake.ack = p.handshake.seq;
+		if (p.handshake.seq <0 || p.handshake.seq > SEQUENCE_RANGE)
+		{
+			cout << "xxxxxxxxxxxxxxxxxxxxxxxxx Sequence not set xxxxxxxxxxxxxxxxxxxxxxxx :" << p.handshake.seq << endl;
+		}
 		if (!sendUDPPacket(ackPack, from))
 		{
 			cout << "Couldn't send the acknowledgement!" << endl;
@@ -330,26 +350,18 @@ public:
 		int dataOffset = 0, numOfPackets = calculateNumOfPackets(size);
 		for (int i = 0; i < numOfPackets; i++, dataOffset += currentPacketContentSize(size, dataOffset))
 		{
-			//shift flags
-			for (int k = 0; k < WINDOW_SIZE; k++)
-			{
-				if (k + 1 < WINDOW_SIZE)
-				{
-					ackFlag[k] = ackFlag[k + 1];
-				}
-				else
-				{
-					ackFlag[k] = false;
-				}
-			}
-
 			int tempOffset = dataOffset, effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
+
+			//shift flags
+			shiftWindowFlags(ackFlag, effectiveWindowsize);
+
 			//prepare packets
 			UDPPacket packets[WINDOW_SIZE];
 			for (int j = i; j < i + effectiveWindowsize; j++, tempOffset += currentPacketContentSize(size, tempOffset))
 			{
 				memset(packets[j - i].content, '\0', PACKET_LENGTH);
 				memcpy(packets[j - i].content, buffer + tempOffset, currentPacketContentSize(size, tempOffset));
+				packets[j - i].length = currentPacketContentSize(size, tempOffset);
 				packets[j - i].handshake.seq = j%SEQUENCE_RANGE;
 				//cout << "Current i value: " << i << " and j=" << j << " seq: " << j%SEQUENCE_RANGE <<" Seq range limit: "<< SEQUENCE_RANGE << endl;
 				//cout << "packet#" << packets[j - i].handshake.seq << " content: " << packets[j - i].content << endl;
@@ -438,21 +450,11 @@ public:
 		memset(buffer, '\0', size);
 		int bufferOffset = 0, numOfPackets = calculateNumOfPackets(size);
 		bool recievedFlag[WINDOW_SIZE] = { false };
-		for (int i = 0; i < numOfPackets; i++, bufferOffset += currentPacketContentSize(size, bufferOffset))
+		for (int i = 0; i < numOfPackets; i++, bufferOffset += PACKET_LENGTH)
 		{
 			int effectiveWindowsize = WINDOW_SIZE<(numOfPackets - i) ? WINDOW_SIZE : (numOfPackets - i);
 			//shift recievedFlags
-			for (int k = 0; k < effectiveWindowsize; k++)
-			{
-				if (k + 1 < effectiveWindowsize)
-				{
-					recievedFlag[k] = recievedFlag[k + 1];
-				}
-				else
-				{
-					recievedFlag[k] = false;
-				}
-			}
+			shiftWindowFlags(recievedFlag, effectiveWindowsize);
 			int tempOffset = bufferOffset;
 			int firstSequence = i % SEQUENCE_RANGE;
 			while (true)
@@ -463,15 +465,15 @@ public:
 				if (curPacketIndex < 0 || curPacketIndex > effectiveWindowsize - 1)
 				{
 					//out of bound packet, discard
-					cout << "!!!!Out Of Bound packet. #" << packet.handshake.seq<<" Discarding"<<endl;
+					cout << "!!!!Out Of Bound packet. #" << packet.handshake.seq << " ews: " << effectiveWindowsize << " .Discarding!!" << endl;
 					continue;
 				}
 
 				if (!recievedFlag[curPacketIndex])
 				{
-					//TODO shouldn't recieve from outside of window frame
+					//TODO packet could be out of sequence
 					recievedFlag[curPacketIndex] = true;
-					memcpy((void *)(buffer + tempOffset), packet.content, currentPacketContentSize(size, tempOffset));
+					memcpy((void *)(buffer + ((i+curPacketIndex)*PACKET_LENGTH)), packet.content, packet.length);
 					tempOffset += currentPacketContentSize(size, tempOffset);
 				}
 				else

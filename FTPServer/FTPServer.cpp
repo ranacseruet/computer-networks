@@ -32,7 +32,20 @@ void FTPServer::run()
 		hs.seq = (rand() % 100) + 10;
 		udpServer->sendHandshakeResponse(hs);
 
-		request = udpServer->RecieveRequest(hs.seq+1);
+		request = udpServer->RecieveRequest();
+
+		if (request.handshake.ack != hs.seq + 1)
+		{
+			memset(logMessage, '\0', sizeof(logMessage));
+			sprintf(logMessage, "Handshake acknowledgement didn't match\n");
+			logger->Log(logMessage);
+			Response response;
+			response.isSuccess = false;
+			memset(response.message, '\0', sizeof(response.message));
+			sprintf(response.message, "Handshake acknowledgement didn't match\n");
+			udpServer->SendResponse(response);
+			continue;
+		}
 		
 		memset(logMessage, '\0', sizeof(logMessage));
 		sprintf(logMessage, "Got request. Type: %d\n", request.type);

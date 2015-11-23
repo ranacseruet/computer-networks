@@ -17,7 +17,7 @@ UDPServer::~UDPServer()
 	closesocket(socketHandle);
 }
 
-Request UDPServer::RecieveRequest(int expectedAck)
+Request UDPServer::RecieveRequest()
 {
 	int slen, recv_len;
 
@@ -26,15 +26,6 @@ Request UDPServer::RecieveRequest(int expectedAck)
 	char buffer[sizeof(Request)];
 	recieveAsPacketsSR(buffer, sizeof(Request), &client);
 	Request *request = (Request *)buffer;
-
-	if (request->handshake.ack != expectedAck)
-	{
-		char logMessage[100] = { '\0' };
-		sprintf(logMessage, "Handshake acknowledgement didn't match\n");
-		logger->Log(logMessage);
-		return RecieveRequest(expectedAck);
-	}
-
 	return *request;
 }
 

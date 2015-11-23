@@ -14,7 +14,7 @@
 #define RESP_LENGTH 140
 #define DATA_LENGTH 1016
 #define FILENAME_LENGTH 80
-#define WINDOW_SIZE 1
+#define WINDOW_SIZE 3
 #define SEQUENCE_RANGE ((2 * WINDOW_SIZE) + 1)
 #define MAX_TRIES 20
 
