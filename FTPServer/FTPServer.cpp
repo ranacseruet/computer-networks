@@ -154,14 +154,12 @@ void FTPServer::put(Request request)
 	memset(&response, '\0', sizeof(response));
 	if (fileHelper->DoesFileExist(request.filename))
 	{
-		strcpy(response.message, "File already exist. Delete that first");
-		response.isSuccess = false;
+		fileHelper->DeleteFile(request.filename);
 	}
-	else
-	{
-		strcpy(response.message, "Server is ready to recieve data");
-		response.isSuccess = true;
-	}
+	
+	strcpy(response.message, "Server is ready to recieve data");
+	response.isSuccess = true;
+	
 	udpServer->SendResponse(response);
 
 	if (!response.isSuccess)

@@ -375,7 +375,7 @@ public:
 				{
 					if (sendUDPPacket(packets[j - i], to))
 					{
-						cout << "Sent Packet With Sequence#" << packets[j-i].handshake.seq << endl;
+						//cout << "Sent Packet With Sequence#" << packets[j-i].handshake.seq << endl;
 					}
 				}
 			}
@@ -428,7 +428,7 @@ public:
 					else if (numOfAcks == 0)
 					{
 						//timeout for packet j resend it
-						if (sendUDPPacket(packets[j - i], to))
+						if (!ackFlag[j - i] && sendUDPPacket(packets[j - i], to))
 						{
 							cout << "!!!Timeout for Packet With Sequence#" << packets[j - i].handshake.seq << ".Resent!!!" << endl;
 						}
