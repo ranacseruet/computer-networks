@@ -155,9 +155,7 @@ void FTPClient::put()
 	getline(cin, fileName);
 	strcpy(req.filename, fileName.c_str());
 
-	size_t found = fileList.find(fileName.c_str());
-
-	if (found) {
+	if (fileList.find(fileName.c_str()) != std::string::npos) {
 		cout << "File already exists in server. If you want to overrite please type y or n to cancel." << endl;
 		char flag;
 		cin >> flag;
