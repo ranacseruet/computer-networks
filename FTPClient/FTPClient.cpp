@@ -291,7 +291,14 @@ void FTPClient::run()
 
 	while (1)
 	{
-		showMenu();
+		try
+		{
+			showMenu();
+		}
+		catch (runtime_error err)
+		{
+			cout << "^^^Execption occured^^^" << endl;
+		}
 	}
 }
 

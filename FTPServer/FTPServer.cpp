@@ -14,62 +14,69 @@ void FTPServer::run()
 {
 	while (1)
 	{
-		Request request;
-
-		char logMessage[100] = { '\0' };
-
-		char serverName[100] = { '\0' };
-		if (gethostname(serverName, HOSTNAME_LENGTH) != 0)
+		try
 		{
-			cerr << "Get the host name error,exit" << endl;
-		}
-		sprintf(logMessage, "Host %s Waiting For Requests...\n", serverName);
-		logger->Log(logMessage);
-		
-		Handshake hs;
-		hs = udpServer->recieveHandshakeRequest();
-		hs.ack = hs.seq + 1;
-		hs.seq = (rand() % 100) + 10;
-		udpServer->sendHandshakeResponse(hs);
+			Request request;
 
-		request = udpServer->RecieveRequest();
+			char logMessage[100] = { '\0' };
 
-		if (request.handshake.ack != hs.seq + 1)
-		{
-			memset(logMessage, '\0', sizeof(logMessage));
-			sprintf(logMessage, "Handshake acknowledgement didn't match\n");
+			char serverName[100] = { '\0' };
+			if (gethostname(serverName, HOSTNAME_LENGTH) != 0)
+			{
+				cerr << "Get the host name error,exit" << endl;
+			}
+			sprintf(logMessage, "Host %s Waiting For Requests...\n", serverName);
 			logger->Log(logMessage);
-			Response response;
-			response.isSuccess = false;
-			memset(response.message, '\0', sizeof(response.message));
-			sprintf(response.message, "Handshake acknowledgement didn't match\n");
-			udpServer->SendResponse(response);
-			continue;
-		}
-		
-		memset(logMessage, '\0', sizeof(logMessage));
-		sprintf(logMessage, "Got request. Type: %d\n", request.type);
-		logger->Log(logMessage);
 
-		switch (request.type)
+			Handshake hs;
+			hs = udpServer->recieveHandshakeRequest();
+			hs.ack = hs.seq + 1;
+			hs.seq = (rand() % 100) + 10;
+			udpServer->sendHandshakeResponse(hs);
+
+			request = udpServer->RecieveRequest();
+
+			if (request.handshake.ack != hs.seq + 1)
+			{
+				memset(logMessage, '\0', sizeof(logMessage));
+				sprintf(logMessage, "Handshake acknowledgement didn't match\n");
+				logger->Log(logMessage);
+				Response response;
+				response.isSuccess = false;
+				memset(response.message, '\0', sizeof(response.message));
+				sprintf(response.message, "Handshake acknowledgement didn't match\n");
+				udpServer->SendResponse(response);
+				continue;
+			}
+
+			memset(logMessage, '\0', sizeof(logMessage));
+			sprintf(logMessage, "Got request. Type: %d\n", request.type);
+			logger->Log(logMessage);
+
+			switch (request.type)
+			{
+			case REQ_LIST:
+				list(request);
+				break;
+			case REQ_GET:
+				get(request);
+				break;
+			case REQ_PUT:
+				put(request);
+				break;
+			case REQ_RENAME:
+				rename(request);
+				break;
+			case REQ_DELETE:
+				del(request);
+				break;
+			default:
+				break;
+			}
+		}
+		catch (runtime_error err)
 		{
-		case REQ_LIST:
-			list(request);
-			break;
-		case REQ_GET:
-			get(request);
-			break;
-		case REQ_PUT:
-			put(request);
-			break;
-		case REQ_RENAME:
-			rename(request);
-			break;
-		case REQ_DELETE:
-			del(request);
-			break;
-		default:
-			break;
+			cout << "^^^Execption occured^^^" << endl;
 		}
 	}
 }

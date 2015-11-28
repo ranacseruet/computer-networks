@@ -95,7 +95,7 @@ private:
 		{
 			cout << "xxxxxxxxxxxxxxxxxxxxxxxxx Sequence not set xxxxxxxxxxxxxxxxxxxxxxxx :" << p.handshake.seq << endl;
 		}
-		if (!sendUDPPacket(ackPack, from))
+		else if (!sendUDPPacket(ackPack, from))
 		{
 			cout << "Couldn't send the acknowledgement!" << endl;
 			return false;
@@ -379,8 +379,8 @@ public:
 					}
 				}
 			}
-
-			while (true)
+			int attempt = 0;
+			while (attempt++ < MAX_TRIES)
 			{
 				//TODO MAX TRY and return false if doesn't work
 				
@@ -456,8 +456,9 @@ public:
 			//shift recievedFlags
 			shiftWindowFlags(recievedFlag, effectiveWindowsize);
 			int tempOffset = bufferOffset;
-			int firstSequence = i % SEQUENCE_RANGE;
-			while (true)
+			int firstSequence = i % SEQUENCE_RANGE, attempt = 0;
+			
+			while (attempt++ < MAX_TRIES)
 			{
 				UDPPacket packet = recieveUDPPacket(from);
 				sendPacketRecieptACK(packet, from);
@@ -489,5 +490,29 @@ public:
 				}
 			}
 		}
+
+		//In case one or more acks are dropped, wait 5 times for extra packets, if any and exit then, otherwise server
+		//might still retrying to send the last packet again and again.
+		/*for (int i = 0; i < 5; i++)
+		{
+			int numOfAcks = waitForPacket(from);
+			if (numOfAcks > 0)
+			{
+				for (int k = 0; k < numOfAcks; k++)
+				{
+					UDPPacket extraPacket = recieveUDPPacket(from);
+					sendPacketRecieptACK(extraPacket, from);
+				}
+			}
+			else if (numOfAcks < 0)
+			{
+				cout << "Timer Error!" << endl;
+			}
+			else
+			{
+				//no packet, probably safe to break now
+				break;
+			}
+		}*/
 	}
 };
