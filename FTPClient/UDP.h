@@ -104,6 +104,7 @@ private:
 		{
 			//cout << "Sent packet reciept acknowledgement #" << ackPack.sequence << endl;
 		}
+		cout << ">>>Sent Acknowledgement: " << p.handshake.seq << endl;
 		return true;
 	}
 
@@ -258,6 +259,34 @@ protected:
 		}
 	}*/
 
+	void recieveExtraPackets(sockaddr_in *from)
+	{
+		//In case one or more acks are dropped, wait 5 times for extra packets, if any and exit then, otherwise server
+		//might still retrying to send the last packet again and again.
+		for (int i = 0; i < MAX_TRIES; i++)
+		{
+			int numOfAcks = waitForPacket(from);
+			if (numOfAcks > 0)
+			{
+				for (int k = 0; k < numOfAcks; k++)
+				{
+					UDPPacket extraPacket = recieveUDPPacket(from);
+					cout << "----Recieved Extra packet-----" <<endl;
+					sendPacketRecieptACK(extraPacket, from);
+				}
+			}
+			else if (numOfAcks < 0)
+			{
+				cout << "Timer Error!" << endl;
+			}
+			else
+			{
+				//no packet, probably safe to break now
+				break;
+			}
+		}
+	}
+
 	bool createAndBindSocketConnection(sockaddr_in *address, int port)
 	{
 		//Create a socket
@@ -291,12 +320,14 @@ protected:
 
 	Data recieveData(sockaddr_in *from)
 	{
-
 		Data* data;
 		char buffer[sizeof(Data)];
 		recieveAsPacketsSR(buffer, sizeof(Data), from);
 		data = (Data *)buffer;
-
+		if (data->isLastPacket)
+		{
+			recieveExtraPackets(from);
+		}
 		return *data;
 	};
 
@@ -375,7 +406,7 @@ public:
 				{
 					if (sendUDPPacket(packets[j - i], to))
 					{
-						//cout << "Sent Packet With Sequence#" << packets[j-i].handshake.seq << endl;
+						cout << ">>>Sent Packet: " << packets[j - i].handshake.seq << endl;
 					}
 				}
 			}
@@ -461,12 +492,18 @@ public:
 			while (attempt++ < MAX_TRIES)
 			{
 				UDPPacket packet = recieveUDPPacket(from);
+				if (packet.handshake.seq == -1)
+				{
+					//this is some old ack package
+					continue;
+				}
+				cout << "<<<Recieved Packet: " << packet.handshake.seq << endl;
 				sendPacketRecieptACK(packet, from);
 				int curPacketIndex = indexFromSequenceNo(firstSequence, packet.handshake.seq);
-				if (curPacketIndex < 0 || curPacketIndex > effectiveWindowsize - 1)
+				if (curPacketIndex < 0 || curPacketIndex > effectiveWindowsize)
 				{
 					//out of bound packet, discard
-					cout << "!!!!Out Of Bound packet. #" << packet.handshake.seq << " ews: " << effectiveWindowsize << " .Discarding!!" << endl;
+					cout << "!!!!Out Of Bound packet. #" << packet.handshake.seq << " ews: " << effectiveWindowsize << ". Calculated Index: " << curPacketIndex << " .Discarding!!" << endl;
 					continue;
 				}
 
@@ -490,29 +527,5 @@ public:
 				}
 			}
 		}
-
-		//In case one or more acks are dropped, wait 5 times for extra packets, if any and exit then, otherwise server
-		//might still retrying to send the last packet again and again.
-		/*for (int i = 0; i < 5; i++)
-		{
-			int numOfAcks = waitForPacket(from);
-			if (numOfAcks > 0)
-			{
-				for (int k = 0; k < numOfAcks; k++)
-				{
-					UDPPacket extraPacket = recieveUDPPacket(from);
-					sendPacketRecieptACK(extraPacket, from);
-				}
-			}
-			else if (numOfAcks < 0)
-			{
-				cout << "Timer Error!" << endl;
-			}
-			else
-			{
-				//no packet, probably safe to break now
-				break;
-			}
-		}*/
 	}
 };

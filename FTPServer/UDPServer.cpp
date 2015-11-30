@@ -26,6 +26,12 @@ Request UDPServer::RecieveRequest()
 	char buffer[sizeof(Request)];
 	recieveAsPacketsSR(buffer, sizeof(Request), &client);
 	Request *request = (Request *)buffer;
+	if (request->type != REQ_PUT)
+	{
+		//put request will start sending data immediately after
+		//TODO what if an acknowledgement lost while put request itself???
+		recieveExtraPackets(&client);
+	}	
 	return *request;
 }
 
@@ -63,7 +69,7 @@ Handshake UDPServer::recieveHandshakeRequest()
 	char logMessage[100] = { '\0' };
 	sprintf(logMessage, "Recieved handshake request. Seq No# %d\n", hsReq->seq);
 	logger->Log(logMessage);
-	
+	recieveExtraPackets(&client);
 	return *hsReq;
 }
 

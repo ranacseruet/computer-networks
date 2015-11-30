@@ -84,6 +84,7 @@ void FTPServer::run()
 void FTPServer::list(Request request)
 {
 	Response response;
+	response.type = REQ_LIST;
 	memset(&response, '\0', sizeof(response));
 	string filesList = fileHelper->GetListOfFiles();
 	if (strlen(filesList.c_str()) <= 0)
@@ -105,6 +106,8 @@ void FTPServer::get(Request request)
 	//1. Send success/failure response
 	Response response;
 	memset(&response, '\0', sizeof(response));
+	response.type = REQ_GET;
+
 	if (!fileHelper->DoesFileExist(request.filename))
 	{
 		strcpy(response.message, "File doesn't exist");
@@ -159,6 +162,8 @@ void FTPServer::put(Request request)
 	//1. Send success/failure response
 	Response response;
 	memset(&response, '\0', sizeof(response));
+	response.type = REQ_PUT;
+
 	if (fileHelper->DoesFileExist(request.filename))
 	{
 		fileHelper->DeleteFile(request.filename);
@@ -196,6 +201,8 @@ void FTPServer::del(Request request)
 {
 	Response response;
 	memset(&response, '\0', sizeof(response));
+	response.type = REQ_DELETE;
+
 
 	if (fileHelper->DoesFileExist(request.filename))
 	{
@@ -227,6 +234,7 @@ void FTPServer::rename(Request request)
 {
 	Response response;
 	memset(&response, '\0', sizeof(response));
+	response.type = REQ_RENAME;
 
 	if (fileHelper->DoesFileExist(request.filename))
 	{

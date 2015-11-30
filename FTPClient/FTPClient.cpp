@@ -118,7 +118,7 @@ void FTPClient::get()
 	Response res = uc->RecieveResponse();
 	cout << res.message << endl;
 
-	if (!res.isSuccess) 
+	if (!res.isSuccess && strcmp(res.message, "File found. Server is going to send data") != 0)
 	{
 		uc->CloseConnection();
 		return;

@@ -16,7 +16,7 @@
 #define FILENAME_LENGTH 80
 #define WINDOW_SIZE 3
 #define SEQUENCE_RANGE ((2 * WINDOW_SIZE) + 1)
-#define MAX_TRIES 20
+#define MAX_TRIES 5
 
 using namespace std;
 
@@ -46,7 +46,7 @@ typedef struct
 
 typedef struct
 {
-	int type;
+	Type type;
 	char message[RESP_LENGTH];
 	bool isSuccess;
 }Response;

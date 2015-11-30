@@ -79,7 +79,12 @@ Response UDPClient::RecieveResponse()
 	recieveAsPacketsSR(buffer, sizeof(Response), &server);
 	ptr = (Response *)buffer;
 	cout << "Response type " << ptr->type << " recieved!" << endl;
-
+	if (ptr->type != REQ_GET)
+	{
+		//get request will cause server start sending data immediately after
+		//TODO what if an acknowledgement lost while get request itself???
+		recieveExtraPackets(&server);
+	}
 	return *ptr;
 };
 
@@ -91,7 +96,7 @@ Handshake UDPClient::RecieveHandshakeResponse()
 	char buffer[sizeof(Handshake)];
 	recieveAsPacketsSR(buffer, sizeof(Handshake), &server);
 	ptr = (Handshake *)buffer;
-
+	recieveExtraPackets(&server);
 	return *ptr;
 }
 
