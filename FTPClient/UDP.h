@@ -447,6 +447,7 @@ public:
 							}
 							else
 							{
+								cout << "<<<Recieved ACK for# " << ackPacket.handshake.ack << endl;
 								ackFlag[curPacketIndex] = true;
 							}
 							if (firstSequence == ackPacket.handshake.ack)
@@ -488,18 +489,28 @@ public:
 			shiftWindowFlags(recievedFlag, effectiveWindowsize);
 			int tempOffset = bufferOffset;
 			int firstSequence = i % SEQUENCE_RANGE, attempt = 0;
-			
+			cout << "Ready to accept: ";
+			for (int l = 0; l < effectiveWindowsize; l++)
+			{
+				cout << (firstSequence + l) % SEQUENCE_RANGE << ", ";
+			}
+			cout << "\n";
 			while (attempt++ < MAX_TRIES)
 			{
+				if (recievedFlag[0])
+				{
+					break;
+				}
+
 				UDPPacket packet = recieveUDPPacket(from);
 				if (packet.handshake.seq == -1)
 				{
 					//this is some old ack package
 					continue;
 				}
-				cout << "<<<Recieved Packet: " << packet.handshake.seq << endl;
 				sendPacketRecieptACK(packet, from);
 				int curPacketIndex = indexFromSequenceNo(firstSequence, packet.handshake.seq);
+				cout << "<<<Recieved Packet: " << packet.handshake.seq << " With calculated Index: "<<curPacketIndex<< endl;
 				if (curPacketIndex < 0 || curPacketIndex > effectiveWindowsize)
 				{
 					//out of bound packet, discard
@@ -523,6 +534,10 @@ public:
 				if (firstSequence == packet.handshake.seq)
 				{
 					//if first packet of frame, continue loop
+					break;
+				}
+				if (recievedFlag[0])
+				{
 					break;
 				}
 			}
