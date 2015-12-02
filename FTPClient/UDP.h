@@ -378,6 +378,7 @@ public:
 	{
 		//window size 1
 		bool ackFlag[WINDOW_SIZE] = { false };
+		bool sent[WINDOW_SIZE] = { false };
 		int dataOffset = 0, numOfPackets = calculateNumOfPackets(size);
 		for (int i = 0; i < numOfPackets; i++, dataOffset += currentPacketContentSize(size, dataOffset))
 		{
@@ -385,6 +386,7 @@ public:
 
 			//shift flags
 			shiftWindowFlags(ackFlag, effectiveWindowsize);
+			shiftWindowFlags(sent, effectiveWindowsize);
 
 			//prepare packets
 			UDPPacket packets[WINDOW_SIZE];
@@ -404,9 +406,13 @@ public:
 			{
 				if (!ackFlag[j - i])
 				{
-					if (sendUDPPacket(packets[j - i], to))
+					if (!sent[j - i])
 					{
-						cout << ">>>Sent Packet: " << packets[j - i].handshake.seq << endl;
+						if (sendUDPPacket(packets[j - i], to))
+						{
+							sent[j - i] = true;
+							cout << ">>>Sent Packet: " << packets[j - i].handshake.seq << endl;
+						}
 					}
 				}
 			}
