@@ -74,7 +74,7 @@ void FTPServer::run()
 				break;
 			}
 		}
-		catch (runtime_error err)
+		catch (...)
 		{
 			cout << "^^^Execption occured^^^" << endl;
 		}
