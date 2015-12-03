@@ -402,7 +402,7 @@ public:
 
 			int firstSequence = i % SEQUENCE_RANGE;
 
-			for (int j = i; j < i + effectiveWindowsize; j++)
+			for (int j = i; j < i + effectiveWindowsize && effectiveWindowsize == WINDOW_SIZE; j++)
 			{
 				if (!ackFlag[j - i])
 				{
